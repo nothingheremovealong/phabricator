@@ -2,6 +2,23 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+function safe_copy {
+  if [ ! -f $2 ]; then
+    echo "Copying $1..."
+    cp $1 $2
+  else
+    if ! cmp --silent $1 $2; then
+      echo "Overwrite existing $1 at $2?"
+      select yn in "Yes" "No"; do
+        case $yn in
+          Yes ) echo "Updating $2 site...";cp $1 $2; break;;
+          No ) exit;;
+        esac
+      done
+    fi
+  fi
+}
+
 #if [ $(grep -c "^Listen 80$" /etc/apache2/ports.conf) -ne 0  ]; then
 #  echo "Listening port set to 8080.";
 #  sed -i -e 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf
@@ -12,20 +29,7 @@ if [ -f /etc/apache2/sites-enabled/000-default.conf ]; then
   rm -f /etc/apache2/sites-enabled/000-default.conf
 fi
 
-if [ ! -f /etc/apache2/sites-available/phabricator.conf ]; then
-  echo "Installing phabricator site..."
-  cp $DIR/sites/phabricator.conf /etc/apache2/sites-available/phabricator.conf
-else
-  if ! cmp --silent $DIR/sites/phabricator.conf /etc/apache2/sites-available/phabricator.conf; then
-    echo "Overwrite existing phabricator.conf?"
-    select yn in "Yes" "No"; do
-      case $yn in
-        Yes ) echo "Updating phabricator site...";cp $DIR/sites/phabricator.conf /etc/apache2/sites-available/phabricator.conf; break;;
-        No ) exit;;
-      esac
-    done
-  fi
-fi
+safe_copy $DIR/sites/phabricator.conf /etc/apache2/sites-available/phabricator.conf
 
 if [ ! -h /etc/apache2/sites-enabled/phabricator.conf ]; then
   echo "Activating phabricator site..."
