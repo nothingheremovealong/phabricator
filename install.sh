@@ -100,6 +100,9 @@ bash $DIR/configure_apache.sh
 echo "Configuring php..."
 bash $DIR/configure_php.sh
 
+echo "Configuring pygments..."
+bash $DIR/configure_pygments.sh
+
 echo "Configuring phabricator..."
 bash $DIR/configure_phabricator.sh
 
