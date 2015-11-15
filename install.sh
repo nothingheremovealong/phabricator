@@ -7,7 +7,7 @@
 # n1-standard-1 (1 vCPU, 3.75 GB memory)
 #
 
-if [ "$#" -ne 1 ]
+if [ "$#" -ne 2 ]
 then
   echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri>"
   exit 1
