@@ -1,0 +1,9 @@
+[submodule "third_party/libphutil"]
+	path = third_party/libphutil
+	url = https://github.com/phacility/libphutil.git
+[submodule "third_party/arcanist"]
+	path = third_party/arcanist
+	url = https://github.com/phacility/arcanist.git
+[submodule "third_party/phabricator"]
+	path = third_party/phabricator
+	url = https://github.com/phacility/phabricator.git
