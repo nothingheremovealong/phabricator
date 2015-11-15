@@ -90,5 +90,11 @@ bash $DIR/configure_phabricator.sh
 echo "Configuring scripts..."
 bash $DIR/configure_scripts.sh
 
+echo "Configuring gcloud..."
+bash $DIR/configure_gcloud.sh
+
+echo "Configuring sql..."
+bash $DIR/configure_sql.sh
+
 echo "Restarting apache..."
 apachectl restart
