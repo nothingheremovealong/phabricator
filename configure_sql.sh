@@ -54,6 +54,8 @@ cat > ~/.my.cnf <<EOF
 host=${SQL_HOST}
 user=${SQL_USER}
 password=${SQL_PASS}
+ft_stopword_file=$(pwd)/phabricator/resources/sql/stopwords.txt
+ft_boolean_syntax=' |-><()~*:""&^'
 EOF
 
 echo "Upgrading $SQL_INSTANCE db..."
