@@ -19,5 +19,5 @@ function safe_copy {
   fi
 }
 
-safe_copy $DIR/scripts/PhabricatorMailImplementationPythonCLIAdapter.php /opt/phabricator/src/applications/metamta/adapter/PhabricatorMailImplementationPythonCLIAdapter.php
-safe_copy $DIR/scripts/send_mail.py /opt/send_mail.py
+#safe_copy $DIR/scripts/PhabricatorMailImplementationPythonCLIAdapter.php /opt/phabricator/src/applications/metamta/adapter/PhabricatorMailImplementationPythonCLIAdapter.php
+#safe_copy $DIR/scripts/send_mail.py /opt/send_mail.py
