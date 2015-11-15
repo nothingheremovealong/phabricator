@@ -7,6 +7,14 @@
 # n1-standard-1 (1 vCPU, 3.75 GB memory)
 #
 
+if [ "$#" -ne 1 ]
+then
+  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name>"
+  exit 1
+fi
+
+SQL_INSTANCE=$1
+
 confirm() {
   echo "Press RETURN to continue, or ^C to cancel.";
   read -e ignored
@@ -101,7 +109,7 @@ echo "Configuring gcloud..."
 bash $DIR/configure_gcloud.sh
 
 echo "Configuring sql..."
-bash $DIR/configure_sql.sh
+bash $DIR/configure_sql.sh $SQL_INSTANCE
 
 echo "Restarting apache..."
 apachectl restart
