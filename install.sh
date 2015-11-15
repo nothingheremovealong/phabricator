@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Recommended Google Cloud machine:
+#
+# Ubuntu 14.04
+# Enable "Project Access"
+# n1-standard-1 (1 vCPU, 3.75 GB memory)
+#
+
 confirm() {
   echo "Press RETURN to continue, or ^C to cancel.";
   read -e ignored
