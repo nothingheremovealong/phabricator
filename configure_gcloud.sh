@@ -18,5 +18,5 @@ rm -f google-cloud-sdk.zip
 
 if [ $(grep -c "\/google\/google-cloud-sdk\/bin" /etc/profile) -eq 0  ]; then
   echo "Adding google cloud SDK to path...";
-  echo PATH=/google/google-cloud-sdk/bin:$PATH >> /etc/profile
+  echo PATH=/google/google-cloud-sdk/bin:\$PATH >> /etc/profile
 fi
