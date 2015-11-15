@@ -54,3 +54,5 @@ host=${SQL_HOST}
 user=${SQL_USER}
 password=${SQL_PASS}
 EOF
+
+phabricator/bin/storage upgrade --force
