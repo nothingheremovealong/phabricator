@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ]
+if [ "$#" -ne 2 ]
 then
-  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name>"
+  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri>"
   exit 1
 fi
 
 SQL_INSTANCE=$1
+PHABRICATOR_BASE_URI=$2
 
 sudo apt-get install -y uuid-runtime jq
 
@@ -41,7 +42,7 @@ pushd /opt/phabricator >> /dev/null
 ./bin/config set mysql.pass ${SQL_PASS}
 
 # Configure Phabricator's reference to itself.
-#./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
+./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
 #./bin/config set security.alternate-file-domain ${ALTERNATE_FILE_DOMAIN}
 ./bin/config set phd.taskmasters 4
 
@@ -54,5 +55,7 @@ host=${SQL_HOST}
 user=${SQL_USER}
 password=${SQL_PASS}
 EOF
+
+echo "Upgrading $SQL_INSTANCE db..."
 
 phabricator/bin/storage upgrade --force

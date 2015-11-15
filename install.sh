@@ -9,11 +9,12 @@
 
 if [ "$#" -ne 1 ]
 then
-  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name>"
+  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri>"
   exit 1
 fi
 
 SQL_INSTANCE=$1
+PHABRICATOR_BASE_URI=$2
 
 confirm() {
   echo "Press RETURN to continue, or ^C to cancel.";
@@ -109,7 +110,7 @@ echo "Configuring gcloud..."
 bash $DIR/configure_gcloud.sh
 
 echo "Configuring sql..."
-bash $DIR/configure_sql.sh $SQL_INSTANCE
+bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI
 
 echo "Restarting apache..."
 apachectl restart
