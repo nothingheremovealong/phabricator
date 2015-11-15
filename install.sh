@@ -87,3 +87,8 @@ bash $DIR/configure_php.sh
 echo "Configuring phabricator..."
 bash $DIR/configure_phabricator.sh
 
+echo "Configuring scripts..."
+bash $DIR/configure_scripts.sh
+
+echo "Restarting apache..."
+apachectl restart
