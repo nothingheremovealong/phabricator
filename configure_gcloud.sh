@@ -20,3 +20,12 @@ if [ $(grep -c "\/google\/google-cloud-sdk\/bin" /etc/profile) -eq 0  ]; then
   echo "Adding google cloud SDK to path...";
   echo PATH=/google/google-cloud-sdk/bin:\$PATH >> /etc/profile
 fi
+
+/google/google-cloud-sdk/install.sh \
+  --rc-path=/etc/bash.bashrc \
+  --usage-reporting=false \
+  --command-completion=true \
+  --path-update=true
+
+/google/google-cloud-sdk/bin/gcloud config set --installation component_manager/disable_update_check True
+
