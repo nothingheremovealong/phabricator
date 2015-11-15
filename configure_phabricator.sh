@@ -2,7 +2,10 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-pushd /opt/phabricator >> /dev/null
+pushd phabricator >> /dev/null
+
+echo "Stopping daemons..."
+./bin/phd stop
 
 ./bin/config set phabricator.timezone America/Los_Angeles
 ./bin/config set phabricator.show-prototypes true

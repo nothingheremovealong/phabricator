@@ -112,5 +112,10 @@ bash $DIR/configure_gcloud.sh
 echo "Configuring sql..."
 bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI
 
+pushd phabricator >> /dev/null
+echo "Starting daemons"
+./bin/phd start
+popd >> /dev/null
+
 echo "Restarting apache..."
 apachectl restart
