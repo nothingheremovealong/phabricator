@@ -44,7 +44,7 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
 fi
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
-  echo -n " creating temporary $NETWORK_NAME ssh firewall rule..."
+  echo " creating temporary $NETWORK_NAME ssh firewall rule..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
     --allow "tcp:22" \
     --network $NETWORK_NAME \
@@ -80,14 +80,14 @@ echo OK
 echo -n "Compute instances..."
 
 if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; then
-  echo -n " creating $VM_NAME compute instance..."
+  echo " creating $VM_NAME compute instance..."
   gcloud --quiet --project="${PROJECT}" compute instances create "$VM_NAME" \
     --boot-disk-size "10GB" \
     --image "ubuntu-14-04" \
     --machine-type "n1-standard-1" \
     --network "$NETWORK_NAME" \
     --zone "us-central1-a" \
-    --scopes "https://www.googleapis.com/auth/sqlservice" || exit 1
+    --scopes sql,cloud-platform || exit 1
 fi
 
 echo -n "waiting for compute instance to activate..."
@@ -107,10 +107,21 @@ if [ -z "$(gcloud --project=${PROJECT} preview app modules list | grep \"^defaul
   pushd $DIR/nginx >> /dev/null
 
   echo -n "Generating nginx.conf..."
+  
+  if [ -z "$PHABRICATOR_URL" ]; then
+    echo "No phabricator URL found...bailing out"
+    exit 1
+  fi
+  
+  if [ -z "$VM_INTERNAL_IP" ]; then
+    echo "No internal IP found...bailing out"
+    exit 1
+  fi
 
   cp nginx.conf.template nginx.conf
-  sed -i -e s/\\\$PHABRICATOR_URL/$PHABRICATOR_URL/ nginx.conf
-  sed -i -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
+  sed -i.bak -e s/\\\$PHABRICATOR_URL/$PHABRICATOR_URL/ nginx.conf
+  sed -i.bak -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
+  rm nginx.conf.bak
 
   echo "deploying nginx..."
 
