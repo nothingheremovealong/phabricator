@@ -26,7 +26,7 @@ if [ $(grep -c "^smtp_tls_security_level" /etc/postfix/main.cf) -eq 0 ]; then
   echo "smtp_sasl_security_options = noanonymous" >> /etc/postfix/main.cf
 fi
 
-if [ -f /etc/postfix/sasl_passwd.db ]; then
+if [ ! -f /etc/postfix/sasl_passwd.db ]; then
   echo -n Username: 
   read username
   echo
