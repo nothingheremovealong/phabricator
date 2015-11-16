@@ -19,10 +19,10 @@ function safe_copy {
   fi
 }
 
-#if [ $(grep -c "^Listen 80$" /etc/apache2/ports.conf) -ne 0  ]; then
-#  echo "Listening port set to 8080.";
-#  sed -i -e 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf
-#fi
+if [ $(grep -c "^Listen 80$" /etc/apache2/ports.conf) -ne 0  ]; then
+  echo "Listening port set to 8080.";
+  sed -i -e 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf
+fi
 
 if [ -f /etc/apache2/sites-enabled/000-default.conf ]; then
   echo "Removing default site..."
