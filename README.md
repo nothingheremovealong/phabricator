@@ -6,7 +6,6 @@ Visit https://console.developers.google.com/project to create a new project.
 
 ## Enable APIs
 
-1. Google Cloud SQL API
 1. Google Compute Engine
 
 ## Install gcloud tools

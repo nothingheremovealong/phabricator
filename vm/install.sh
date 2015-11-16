@@ -49,7 +49,6 @@ echo
 
 ROOT=`pwd`
 echo "Phabricator will be installed to: ${ROOT}.";
-confirm
 
 echo "Testing sudo..."
 sudo true
