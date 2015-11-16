@@ -42,7 +42,7 @@ pushd /opt/phabricator >> /dev/null
 ./bin/config set mysql.pass ${SQL_PASS}
 
 # Configure Phabricator's reference to itself.
-./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
+#./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
 #./bin/config set security.alternate-file-domain ${ALTERNATE_FILE_DOMAIN}
 ./bin/config set phd.taskmasters 4
 
