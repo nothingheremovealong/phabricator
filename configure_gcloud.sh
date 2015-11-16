@@ -12,7 +12,7 @@ rm -f google-cloud-sdk.zip
 wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip
 
 # Unzip sdk into google directory
-unzip google-cloud-sdk.zip -duo /google/
+unzip -uo google-cloud-sdk.zip -d /google/
 
 rm -f google-cloud-sdk.zip
 
