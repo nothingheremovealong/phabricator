@@ -8,6 +8,7 @@ fi
 PROJECT=$1
 
 NETWORK_NAME=phabricator
+VM_NAME=phabricator
 
 echo "Network..."
 
@@ -58,16 +59,29 @@ fi
 
 echo "Compute instances..."
 
-if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep phabricator)" ]; then
-echo "- Creating compute instance..."
-  gcloud --quiet --project="${PROJECT}" compute instances create "phabricator" \
+if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep $VM_NAME)" ]; then
+echo "- Creating $VM_NAME compute instance..."
+  gcloud --quiet --project="${PROJECT}" compute instances create "$VM_NAME" \
     --boot-disk-size "10GB" \
     --image "ubuntu-14-04" \
     --machine-type "n1-standard-1" \
     --network "$NETWORK_NAME" \
     --zone "us-central1-a" || exit 1
+
+  echo " Waiting for compute instance to activate..."
+  while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep phabricator)" ]; do
+    sleep 10
+  done
 fi
 
-while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep phabricator)" ]; do
-  sleep 10
-done
+echo " Connecting to $VM_NAME..."
+echo " Once connected, please run the following commands:"
+echo
+echo "     sudo apt-get update && sudo apt-get install git"
+echo "     git clone https://github.com/nothingheremovealong/phabricator.git"
+echo "     cd /opt"
+echo "     sudo bash ~/phabricator/vm/install.sh"
+echo
+
+gcloud --project=phabitest compute ssh $VM_NAME --zone us-central1-a
+
