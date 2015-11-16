@@ -54,6 +54,7 @@ cat > ~/.my.cnf <<EOF
 host=${SQL_HOST}
 user=${SQL_USER}
 password=${SQL_PASS}
+[mysqld]
 ft_stopword_file=$(pwd)/phabricator/resources/sql/stopwords.txt
 ft_boolean_syntax=' |-><()~*:""&^'
 EOF

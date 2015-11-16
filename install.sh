@@ -122,3 +122,6 @@ popd >> /dev/null
 
 echo "Restarting apache..."
 apachectl restart
+
+# Follow-up guides:
+# - [Setting up mail](https://cloud.google.com/compute/docs/tutorials/sending-mail/)
