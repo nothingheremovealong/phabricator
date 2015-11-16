@@ -1,0 +1,1 @@
+/google/google-cloud-sdk/bin/gcloud preview app deploy --version=1 --promote app.yaml
