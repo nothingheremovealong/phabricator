@@ -1,13 +1,14 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]
+if [ "$#" -ne 3 ]
 then
-  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri>"
+  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri> <http://alternate_base_uri>"
   exit 1
 fi
 
 SQL_INSTANCE=$1
 PHABRICATOR_BASE_URI=$2
+PHABRICATOR_ALTERNATE_BASE_URI=$3
 
 sudo apt-get install -y uuid-runtime jq
 
@@ -43,7 +44,7 @@ pushd /opt/phabricator >> /dev/null
 
 # Configure Phabricator's reference to itself.
 ./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
-#./bin/config set security.alternate-file-domain ${ALTERNATE_FILE_DOMAIN}
+./bin/config set security.alternate-file-domain ${PHABRICATOR_ALTERNATE_BASE_URI}
 ./bin/config set phd.taskmasters 4
 
 popd >> /dev/null
