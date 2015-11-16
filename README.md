@@ -68,6 +68,7 @@ Create the SQL server.
 ## VM instance: phabricator
 
 - Tags: none
+- OS: Choose the latest `Ubuntu LTS`
 - Machine type: `n1-standard-1 (1 vCPU, 3.75 GB memory)`
 - CPU platform: `Intel Sandy Bridge`
 - Zone: `us-central1-a`
