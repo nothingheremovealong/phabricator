@@ -27,10 +27,11 @@ if [ $(grep -c "^smtp_tls_security_level" /etc/postfix/main.cf) -eq 0 ]; then
 fi
 
 if [ ! -f /etc/postfix/sasl_passwd.db ]; then
-  echo -n Username: 
+  echo "Please enter your sendmail credentials from https://app.sendgrid.com/settings/credentials"
+  echo -n Sendmail Username: 
   read username
   echo
-  echo -n Password: 
+  echo -n Sendmail Password: 
   read -s password
   echo
 
