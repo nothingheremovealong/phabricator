@@ -25,15 +25,11 @@ If not, run
 
 Running `auth list` again should reveal the correct "Credentialed account".
 
-## Set environment variables
+## Option 1: Command line setup
 
-Store your project's name as an environment variable:
-
-    PROJECT=<your_project_name>
+## Option 2: Web setup
 
 ## network: phabricator
-
-    
 
 1. Visit https://console.developers.google.com/networking/networks/list to manage your networks.
    Note: Ensure that the correct project is selected.
