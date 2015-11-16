@@ -27,7 +27,7 @@ echo OK
 echo -n "Network..."
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep "\b$NETWORK_NAME\b")" ]; then
-  echo "Creating $NETWORK_NAME network..."
+  echo " creating $NETWORK_NAME network..."
   gcloud --project="${PROJECT}" --quiet compute networks create $NETWORK_NAME --range "10.0.0.0/24" || exit 1
 fi
 
@@ -36,16 +36,16 @@ echo OK
 echo -n " Firewall rules..."
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
-  echo -n "creating internal $NETWORK_NAME firewall rules..."
+  echo " creating internal $NETWORK_NAME firewall rules..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create allow-internal \
     --allow "tcp:0-65535" \
     --network $NETWORK_NAME \
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-ssh\b")" ]; then
-  echo -n "Ccreating temporary $NETWORK_NAME ssh firewall rules..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create allow-ssh \
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+  echo -n " creating temporary $NETWORK_NAME ssh firewall rule..."
+  gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
     --allow "tcp:22" \
     --network $NETWORK_NAME \
     --source-ranges "0.0.0.0/0" || exit 1
@@ -56,7 +56,7 @@ echo OK
 echo -n "SQL..."
 
 if [ -z "$(gcloud --quiet --project=${PROJECT} sql instances list | grep "\b$SQL_NAME\b")" ]; then
-  echo -n "creating $SQL_NAME SQL database..."
+  echo -n " creating $SQL_NAME SQL database..."
   gcloud --quiet --project="${PROJECT}" sql instances create "$SQL_NAME" \
     --backup-start-time="00:00" \
     --assign-ip \
@@ -80,7 +80,7 @@ echo OK
 echo -n "Compute instances..."
 
 if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; then
-  echo -n "creating $VM_NAME compute instance..."
+  echo -n " creating $VM_NAME compute instance..."
   gcloud --quiet --project="${PROJECT}" compute instances create "$VM_NAME" \
     --boot-disk-size "10GB" \
     --image "ubuntu-14-04" \
@@ -89,8 +89,6 @@ if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b
     --zone "us-central1-a" \
     --scopes "https://www.googleapis.com/auth/sqlservice" || exit 1
 fi
-
-# Compute engine
 
 echo -n "waiting for compute instance to activate..."
 while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; do
@@ -116,7 +114,7 @@ if [ -z "$(gcloud --project=${PROJECT} preview app modules list | grep \"^defaul
 
   echo "deploying nginx..."
 
-  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml
+  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
 
   echo OK
 
@@ -125,11 +123,16 @@ fi # TODO: if nginx already exists, check for nginx conf changes and redeploy...
 
 function remote_exec {
   echo "Executing $1..."
-  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone us-central1-a --command "$1"
+  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone us-central1-a --command "$1" || exit 1
 }
 
-remote_exec "sudo apt-get -qq update && sudo apt-get install -y git"
-remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi"
-remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL"
+remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
+remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
+remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
+
+if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+  echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
+  gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
+fi
 
 echo "Setup complete. Visit http://$PHABRICATOR_URL to set up your phabricator instance."
