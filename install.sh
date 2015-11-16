@@ -119,6 +119,7 @@ fi
 
 cp nginx.conf.template nginx.conf
 sed -i.bak -e s/\\\$PHABRICATOR_URL/$PHABRICATOR_URL/ nginx.conf
+sed -i.bak -e s/\\\$PHABRICATOR_ALTERNATE_URL/$PHABRICATOR_VERSIONED_URL/ nginx.conf
 sed -i.bak -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
 rm nginx.conf.bak
 
