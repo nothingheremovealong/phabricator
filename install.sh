@@ -27,7 +27,7 @@ echo OK
 echo -n "Network..."
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep "\b$NETWORK_NAME\b")" ]; then
-  echo -n "Creating $NETWORK_NAME network..."
+  echo "Creating $NETWORK_NAME network..."
   gcloud --project="${PROJECT}" --quiet compute networks create $NETWORK_NAME --range "10.0.0.0/24" || exit 1
 fi
 
@@ -36,7 +36,7 @@ echo OK
 echo -n " Firewall rules..."
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
-echo -n "Creating internal $NETWORK_NAME firewall rules..."
+  echo -n "creating internal $NETWORK_NAME firewall rules..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create allow-internal \
     --allow "tcp:0-65535" \
     --network $NETWORK_NAME \
@@ -44,7 +44,7 @@ echo -n "Creating internal $NETWORK_NAME firewall rules..."
 fi
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-ssh\b")" ]; then
-echo -n "Creating temporary $NETWORK_NAME ssh firewall rules..."
+  echo -n "Ccreating temporary $NETWORK_NAME ssh firewall rules..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create allow-ssh \
     --allow "tcp:22" \
     --network $NETWORK_NAME \
@@ -56,7 +56,7 @@ echo OK
 echo -n "SQL..."
 
 if [ -z "$(gcloud --quiet --project=${PROJECT} sql instances list | grep "\b$SQL_NAME\b")" ]; then
-echo -n "Creating $SQL_NAME SQL database..."
+  echo -n "creating $SQL_NAME SQL database..."
   gcloud --quiet --project="${PROJECT}" sql instances create "$SQL_NAME" \
     --backup-start-time="00:00" \
     --assign-ip \
@@ -80,13 +80,14 @@ echo OK
 echo -n "Compute instances..."
 
 if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; then
-echo -n "Creating $VM_NAME compute instance..."
+  echo -n "creating $VM_NAME compute instance..."
   gcloud --quiet --project="${PROJECT}" compute instances create "$VM_NAME" \
     --boot-disk-size "10GB" \
     --image "ubuntu-14-04" \
     --machine-type "n1-standard-1" \
     --network "$NETWORK_NAME" \
-    --zone "us-central1-a" || exit 1
+    --zone "us-central1-a" \
+    --scopes "https://www.googleapis.com/auth/sqlservice" || exit 1
 fi
 
 # Compute engine
@@ -98,7 +99,7 @@ done
 
 VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet sql instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
 
-echo -n "Internal IP: $VM_INTERNAL_IP. "
+echo -n "internal IP: $VM_INTERNAL_IP. "
 echo OK
 
 PHABRICATOR_URL=$PROJECT.appspot.com
