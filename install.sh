@@ -95,7 +95,7 @@ while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep 
   sleep 10
 done
 
-VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet sql instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
+VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
 
 echo -n "internal IP: $VM_INTERNAL_IP. "
 echo OK

@@ -28,10 +28,10 @@ fi
 
 if [ ! -f /etc/postfix/sasl_passwd.db ]; then
   echo "Please enter your sendmail credentials from https://app.sendgrid.com/settings/credentials"
-  echo -n Sendmail Username: 
+  echo -n "Sendgrid Username: "
   read username
   echo
-  echo -n Sendmail Password: 
+  echo -n "Sendgrid Password: "
   read -s password
   echo
 
