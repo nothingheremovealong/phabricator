@@ -7,15 +7,19 @@
 # n1-standard-1 (1 vCPU, 3.75 GB memory)
 #
 
-if [ "$#" -ne 3 ]
-then
-  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri> <http://alternate_base_uri>"
+if [ "$#" -lt 2 ]; then
+  echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri> (<http://alternate_base_uri>)"
   exit 1
 fi
 
 SQL_INSTANCE=$1
 PHABRICATOR_BASE_URI=$2
-PHABRICATOR_ALTERNATE_BASE_URI=$3
+
+if [ "$#" -eq 3 ]; then
+  PHABRICATOR_ALTERNATE_BASE_URI=$3
+else
+  PHABRICATOR_ALTERNATE_BASE_URI=
+fi
 
 confirm() {
   echo "Press RETURN to continue, or ^C to cancel.";

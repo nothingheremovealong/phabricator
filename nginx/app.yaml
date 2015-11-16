@@ -22,9 +22,9 @@ handlers:
 
 - url: /auth/register/
   script: dynamic
-  secure: always
+#  secure: always
   login: admin
 
 - url: /.*
   script: dynamic
-  secure: always
+#  secure: always
