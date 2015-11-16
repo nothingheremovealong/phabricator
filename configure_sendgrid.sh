@@ -19,7 +19,7 @@ fi
 
 if [ $(grep -c "^smtp_tls_security_level" /etc/postfix/main.cf) -eq 0 ]; then
   echo "Adding smtp_tls_security_level...";
-  cat > /etc/postfix/main.cf echo << EOF
+  cat >> /etc/postfix/main.cf << EOF
 smtp_tls_security_level = encrypt
 smtp_sasl_auth_enable = yes
 smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
