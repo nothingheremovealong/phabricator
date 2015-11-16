@@ -145,4 +145,6 @@ if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "
   gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
 fi
 
-echo "Setup complete. Visit http://$PHABRICATOR_URL to set up your phabricator instance."
+echo "Visit http://$PHABRICATOR_URL to set up your phabricator instance."
+echo "Visit https://console.developers.google.com/permissions/projectpermissions?project=$PROJECT to configure your project's permissions."
+echo "Setup complete."
