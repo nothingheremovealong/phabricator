@@ -27,4 +27,5 @@ handlers:
 
 - url: /.*
   script: dynamic
+  login: admin
 #  secure: always
