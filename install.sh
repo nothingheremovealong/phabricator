@@ -92,28 +92,28 @@ else
 fi
 
 echo "Configuring submodules..."
-bash $DIR/configure_submodules.sh
+bash $DIR/configure_submodules.sh || exit 1
 
 echo "Configuring apache..."
-bash $DIR/configure_apache.sh
+bash $DIR/configure_apache.sh || exit 1
 
 echo "Configuring php..."
-bash $DIR/configure_php.sh
+bash $DIR/configure_php.sh || exit 1
 
 echo "Configuring pygments..."
-bash $DIR/configure_pygments.sh
+bash $DIR/configure_pygments.sh || exit 1
 
 echo "Configuring phabricator..."
-bash $DIR/configure_phabricator.sh
+bash $DIR/configure_phabricator.sh || exit 1
 
 echo "Configuring scripts..."
-bash $DIR/configure_scripts.sh
+bash $DIR/configure_scripts.sh || exit 1
 
 echo "Configuring gcloud..."
-bash $DIR/configure_gcloud.sh
+bash $DIR/configure_gcloud.sh || exit 1
 
 echo "Configuring sql..."
-bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI
+bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI || exit 1
 
 pushd phabricator >> /dev/null
 echo "Starting daemons"

@@ -17,14 +17,14 @@ pushd phabricator >> /dev/null
 export SQL_DETAILS="$(/google/google-cloud-sdk/bin/gcloud sql instances describe ${SQL_INSTANCE} --format=json)"
 if [ -z "${SQL_DETAILS}" ]; then
   echo "Failed to lookup details for the '${SQL_INSTANCE}' Cloud SQL instance. Make sure that you have the SQL API enabled."
-  exit
+  exit 1
 fi
 popd >> /dev/null
 
 export SQL_HOST=$(echo ${SQL_DETAILS} | jq -r '.ipAddresses[0].ipAddress')
 if [ -z "${SQL_HOST}" ]; then
   echo "Failed to lookup the IP address of the '${SQL_INSTANCE}' Cloud SQL instance"
-  exit
+  exit 1
 fi
 
 export SQL_USER=root
