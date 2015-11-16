@@ -4,26 +4,58 @@
 
 Visit https://console.developers.google.com/project to create a new project.
 
+## Enable APIs
+
+1. Google Cloud SQL API
+1. Google Compute Engine
+
+## Install gcloud tools
+
+Follow the directions located here: https://cloud.google.com/sdk/?hl=en
+
+## Authenticate gcloud
+
+Verify that gcloud is authenticated:
+
+    gcloud auth list
+
+If not, run
+
+    gcloud auth login
+
+Running `auth list` again should reveal the correct "Credentialed account".
+
+## Set environment variables
+
+Store your project's name as an environment variable:
+
+    PROJECT=<your_project_name>
+
 ## network: phabricator
 
+    
+
 1. Visit https://console.developers.google.com/networking/networks/list to manage your networks.
-2. Click "Create network".
-3. Name: `phabricator`
-4. Address range: `10.0.0.0/24`
-5. Gateway: `10.0.0.1`
-6. Enable "allow-internal" in the Firewall settings.
-7. Click "Create".
+   Note: Ensure that the correct project is selected.
+1. Click "Create network".
+1. Name: `phabricator`
+1. Address range: `10.0.0.0/24`
+1. Gateway: `10.0.0.1`
+1. Enable "allow-internal" in the Firewall settings.
+1. Click "Create".
 
 ## SQL server: phabricator
 
 1. Visit https://console.developers.google.com/sql/instances to create a SQL server instance.
-2. Name: `phabricator`
-3. Region: `us-central`
-4. Tier: `D1 - 512MB RAM`
-5. Expand advanced options...
-6. Select `Package billing plan`
-7. Assign an IPv4 address.
-8. Under MySQL flags, set the following:
+   Note: Ensure that the correct project is selected.
+1. Create a new instance.
+1. Name: `phabricator`
+1. Region: `us-central`
+1. Tier: `D1 - 512MB RAM`
+1. Expand advanced options...
+1. Select `Package billing plan`
+1. Assign an IPv4 address.
+1. Under MySQL flags, set the following:
 
 Flags:
 
