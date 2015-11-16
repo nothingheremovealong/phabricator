@@ -103,34 +103,32 @@ echo OK
 PHABRICATOR_URL=$PROJECT.appspot.com
 PHABRICATOR_VERSIONED_URL=1-dot-$PROJECT.appspot.com
 
-if [ -z "$(gcloud --project=${PROJECT} preview app modules list | grep \"^default\")" ]; then
-  pushd $DIR/nginx >> /dev/null
+pushd $DIR/nginx >> /dev/null
 
-  echo -n "Generating nginx.conf..."
-  
-  if [ -z "$PHABRICATOR_URL" ]; then
-    echo "No phabricator URL found...bailing out"
-    exit 1
-  fi
-  
-  if [ -z "$VM_INTERNAL_IP" ]; then
-    echo "No internal IP found...bailing out"
-    exit 1
-  fi
+echo -n "Generating nginx.conf..."
 
-  cp nginx.conf.template nginx.conf
-  sed -i.bak -e s/\\\$PHABRICATOR_URL/$PHABRICATOR_URL/ nginx.conf
-  sed -i.bak -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
-  rm nginx.conf.bak
+if [ -z "$PHABRICATOR_URL" ]; then
+  echo "No phabricator URL found...bailing out"
+  exit 1
+fi
 
-  echo "deploying nginx..."
+if [ -z "$VM_INTERNAL_IP" ]; then
+  echo "No internal IP found...bailing out"
+  exit 1
+fi
 
-  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+cp nginx.conf.template nginx.conf
+sed -i.bak -e s/\\\$PHABRICATOR_URL/$PHABRICATOR_URL/ nginx.conf
+sed -i.bak -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
+rm nginx.conf.bak
 
-  echo OK
+echo "deploying nginx..."
 
-  popd >> /dev/null
-fi # TODO: if nginx already exists, check for nginx conf changes and redeploy...
+gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+
+echo OK
+
+popd >> /dev/null
 
 function remote_exec {
   echo "Executing $1..."
