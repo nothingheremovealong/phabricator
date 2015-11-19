@@ -110,6 +110,9 @@ bash $DIR/configure_pygments.sh || exit 1
 echo "Configuring phabricator..."
 bash $DIR/configure_phabricator.sh || exit 1
 
+echo "Configuring notifications..."
+bash $DIR/configure_notifications.sh || exit 1
+
 echo "Configuring hosted repos..."
 bash $DIR/configure_hosted_repos.sh || exit 1
 

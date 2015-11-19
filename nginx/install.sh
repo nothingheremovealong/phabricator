@@ -1,1 +1,0 @@
-gcloud preview app deploy --version=1 --promote app.yaml
