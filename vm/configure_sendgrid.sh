@@ -15,6 +15,9 @@ fi
 if [ $(grep -c "^relayhost" /etc/postfix/main.cf) -eq 0 ]; then
   echo "Adding relayhost...";
   echo "relayhost = [smtp.sendgrid.net]:2525" >> /etc/postfix/main.cf
+else
+  echo "Editing relayhost...";
+  sed -i -e "s/^relayhost.+$/#relayhost = [smtp.sendgrid.net]:2525/" /etc/postfix/main.cf
 fi
 
 if [ $(grep -c "^smtp_tls_security_level" /etc/postfix/main.cf) -eq 0 ]; then
