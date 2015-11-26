@@ -40,7 +40,7 @@ http {
     location /_ah {
       root /usr/share/nginx/www;
     }
-    location = /ws/ {
+    location /ws {
       proxy_pass http://websocket_pool;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
