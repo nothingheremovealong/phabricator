@@ -13,6 +13,8 @@ popd >> /dev/null
 # Start the notification server
 pushd phabricator >> /dev/null
 
+./bin/config set notification.client-uri http://localhost/ws/
+
 bin/aphlict start --client-host=localhost
 
 popd >> /dev/null
