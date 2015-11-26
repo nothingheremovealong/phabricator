@@ -11,7 +11,9 @@ function clone {
     echo "Cloning $1..."
     git clone $DIR/third_party/$1 $1
   else
+    pushd $1 >> /dev/null
     git fetch $DIR/third_party/$1
+    popd >> /dev/null
   fi
 
   pushd $DIR >> /dev/null
