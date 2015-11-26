@@ -18,6 +18,6 @@ pushd phabricator >> /dev/null
 ./bin/config set notification.enabled true
 ./bin/config set notification.client-uri http://localhost/ws/
 
-bin/aphlict start --client-host=localhost
+sudo su www -c bin/aphlict restart --client-host=localhost
 
 popd >> /dev/null
