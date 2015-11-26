@@ -113,7 +113,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep "\b$DNS_NAME\b")" ]; then
     echo " creating DNS zone $DNS_NAME..."
     gcloud --project="${PROJECT}" --quiet dns managed-zones create \
-      --dns-name="$TOP_LEVEL_DOMAIN." \
+      --dns-name="$TOP_LEVEL_DOMAIN" \
       --description="phabricator DNS" \
       $DNS_NAME || exit 1
   fi
@@ -211,9 +211,14 @@ sed -i.bak -e s/\\\$PHABRICATOR_ALTERNATE_URL/$PHABRICATOR_VERSIONED_URL/ nginx.
 sed -i.bak -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
 rm nginx.conf.bak
 
-COMPUTED_NGINX_SHA=$(find nginx -type f \( -exec shasum {} \; \) | shasum | cut -d' ' -f1)
+COMPUTED_NGINX_SHA=$(find . -type f \( -exec shasum {} \; \) | shasum | cut -d' ' -f1)
 
 if [ "$COMPUTED_NGINX_SHA" != "$NGINX_SHA" ]; then
+  echo "deploying nginx..."
+  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+
+  popd >> /dev/null
+
   if [ $(grep -c "^NGINX_SHA" phabricator.sh) -ne 0 ]; then
     sed -i'.tmp' -e "s/^NGINX_SHA=.*/NGINX_SHA=$COMPUTED_NGINX_SHA/" phabricator.sh
     rm -rf phabricator.sh.tmp
@@ -222,11 +227,8 @@ if [ "$COMPUTED_NGINX_SHA" != "$NGINX_SHA" ]; then
     echo "NGINX_SHA=$COMPUTED_NGINX_SHA" >> phabricator.sh
   fi
 
-  echo "deploying nginx..."
-  exit
-  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+  pushd $DIR/nginx >> /dev/null
 fi
-exit
 
 echo OK
 
