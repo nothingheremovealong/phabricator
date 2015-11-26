@@ -63,7 +63,7 @@ if [ -z "$(gcloud --quiet --project=${PROJECT} sql instances list | grep "\b$SQL
     --authorized-networks "0.0.0.0/0" \
     --authorized-gae-apps "${PROJECT}" \
     --gce-zone "us-central1-a" \
-    --tier="D1" \
+    --tier="D0" \
     --pricing-plan="PACKAGE" \
     --database-flags="sql_mode=STRICT_ALL_TABLES,ft_min_word_len=3,max_allowed_packet=33554432" || exit 1
 fi
