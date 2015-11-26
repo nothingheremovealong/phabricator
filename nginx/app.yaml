@@ -26,6 +26,9 @@ handlers:
 - url: /file/.*
   script: dynamic
 
+- url: /ws/.*
+  script: dynamic
+
 - url: /auth/register/
   script: dynamic
 #  secure: always
