@@ -113,11 +113,19 @@ if [ -n $CUSTOM_DOMAIN ]; then
       $DNS_NAME || exit 1
   fi
 
-  # Mailgun DNS
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dnsdns record-sets --zone=\"$DNS_NAME\" list | grep \"v=spf1 include:mailgun.org ~all\")" ]; then
+  # Mailgun TXT
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone=\"$DNS_NAME\" list | grep \"v=spf1 include:mailgun.org ~all\")" ]; then
     echo " adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
     gcloud --project=${PROJECT} dns record-sets transaction start --zone=$DNS_NAME
     gcloud --project=${PROJECT} dns record-sets transaction add --zone=$DNS_NAME --name="$PHABRICATOR_URL." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
+    gcloud --project=${PROJECT} dns record-sets transaction execute --zone=$DNS_NAME
+  fi
+
+  # Mailgun email. CNAME
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone=\"$DNS_NAME\" list | grep \"CNAME\" | grep \"mailgun.org\")" ]; then
+    echo " adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
+    gcloud --project=${PROJECT} dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} dns record-sets transaction add --zone=$DNS_NAME --name="email.$PHABRICATOR_URL." --ttl=21600 --type=CNAME "mailgun.org"
     gcloud --project=${PROJECT} dns record-sets transaction execute --zone=$DNS_NAME
   fi
 
