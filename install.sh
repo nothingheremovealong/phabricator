@@ -7,9 +7,7 @@ fi
 
 PROJECT=$1
 
-NETWORK_NAME=phabricator
-SQL_NAME=phabricator
-VM_NAME=phabricator
+. phabricator.sh
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

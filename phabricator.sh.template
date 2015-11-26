@@ -1,0 +1,5 @@
+#!/bin/bash
+
+NETWORK_NAME=phabricator
+SQL_NAME=phabricator
+VM_NAME=phabricator
