@@ -100,14 +100,6 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
-  echo " creating temporary $NETWORK_NAME ssh firewall rule..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
-    --allow "tcp:22" \
-    --network $NETWORK_NAME \
-    --source-ranges "0.0.0.0/0" || exit 1
-fi
-
 echo OK
 
 if [ -n $CUSTOM_DOMAIN ]; then
@@ -224,6 +216,14 @@ gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote a
 echo OK
 
 popd >> /dev/null
+
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+  echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
+  gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
+    --allow "tcp:22" \
+    --network $NETWORK_NAME \
+    --source-ranges "0.0.0.0/0" || exit 1
+fi
 
 function remote_exec {
   echo "Executing $1..."
