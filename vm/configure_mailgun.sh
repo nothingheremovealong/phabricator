@@ -10,8 +10,7 @@ PHABRICATOR_BASE_DOMAIN=$(echo $PHABRICATOR_BASE_URI | cut -d'/' -f3-)
 
 pushd phabricator >> /dev/null
 
-if [ -z $(./bin/config get mailgun.api-key) ]; then
-
+if [ -z "$(./bin/config get mailgun.api-key)" ]; then
 
   echo "Configuring Phabricator for Mailgun..."
 
