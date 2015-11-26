@@ -5,8 +5,11 @@
 # Terminate execution on command failure
 set -e
 
-if [[ -n $CUSTOM_DOMAIN && ! $CUSTOM_DOMAIN_CONFIRMED ]]; then
-  echo
+RED='\033[0;31m'
+NC='\033[0m'
+
+if [[ -n $CUSTOM_DOMAIN && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
+  echo -e ${RED}
   echo "You have provided a custom domain of $CUSTOM_DOMAIN"
   echo "In order to configure the domain you will need to perform the following steps:"
   echo
@@ -19,12 +22,18 @@ if [[ -n $CUSTOM_DOMAIN && ! $CUSTOM_DOMAIN_CONFIRMED ]]; then
   echo "  4. In your domain registrar, add the CNAME record indicated in the previous step."
   echo
   echo "  Learn more about custom domains at https://cloud.google.com/appengine/docs/using-custom-domains-and-ssl?hl=en"
-  echo
+  echo -e ${NC}
   
   echo "Please press enter to confirm that you've registered $CUSTOM_DOMAIN, or Ctrl-C to quit."
   read
-  echo >> phabricator.sh
-  echo "CUSTOM_DOMAIN_CONFIRMED=true" >> phabricator.sh
+
+  if [ $(grep -c "^CUSTOM_DOMAIN_CONFIRMED" phabricator.sh) -ne 0 ]; then
+    sed -i'.tmp' -e "s/^CUSTOM_DOMAIN_CONFIRMED=.*/CUSTOM_DOMAIN_CONFIRMED=$PROJECT/" phabricator.sh
+    rm -rf phabricator.sh.tmp
+  else
+    echo >> phabricator.sh
+    echo "CUSTOM_DOMAIN_CONFIRMED=$PROJECT" >> phabricator.sh
+  fi
 fi
 
 # TODO: Might not always be appspot - how do we configure this?
