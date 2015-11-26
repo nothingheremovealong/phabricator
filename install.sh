@@ -218,13 +218,15 @@ if [ "$COMPUTED_NGINX_SHA" != "$NGINX_SHA" ]; then
   gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
 
   popd >> /dev/null
+  
+  NOW=$(date)
 
   if [ $(grep -c "^NGINX_SHA" phabricator.sh) -ne 0 ]; then
-    sed -i'.tmp' -e "s/^NGINX_SHA=.*/NGINX_SHA=$COMPUTED_NGINX_SHA/" phabricator.sh
+    sed -i'.tmp' -e "s/^NGINX_SHA=.*/NGINX_SHA=$COMPUTED_NGINX_SHA # Generated $NOW/" phabricator.sh
     rm -rf phabricator.sh.tmp
   else
     echo >> phabricator.sh
-    echo "NGINX_SHA=$COMPUTED_NGINX_SHA" >> phabricator.sh
+    echo "NGINX_SHA=$COMPUTED_NGINX_SHA # Generated $NOW" >> phabricator.sh
   fi
 
   pushd $DIR/nginx >> /dev/null
