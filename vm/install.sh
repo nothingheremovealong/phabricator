@@ -122,8 +122,8 @@ bash $DIR/configure_gcloud.sh || exit 1
 echo "Configuring sql..."
 bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI $PHABRICATOR_ALTERNATE_BASE_URI || exit 1
 
-echo "Configuring sendgrid..."
-bash $DIR/configure_sendgrid.sh || exit 1
+echo "Configuring mailgun..."
+bash $DIR/configure_mailgun.sh $PHABRICATOR_BASE_URI || exit 1
 
 pushd phabricator >> /dev/null
 echo "Starting daemons"
