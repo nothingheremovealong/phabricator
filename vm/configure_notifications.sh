@@ -14,11 +14,10 @@ popd >> /dev/null
 pushd phabricator >> /dev/null
 
 ./bin/config set notification.enabled true
-./bin/config set notification.client-uri http://localhost/ws/
 
 touch /var/log/aphlict.log
 chmod a+w /var/log/aphlict.log
 
-#bin/aphlict restart --client-host=localhost
+#bin/aphlict restart
 
 popd >> /dev/null
