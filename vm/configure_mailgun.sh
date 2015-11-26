@@ -5,7 +5,7 @@ if [ "$#" -lt 1 ]; then
   exit 1
 fi
 
-PHABRICATOR_BASE_URI=$2
+PHABRICATOR_BASE_URI=$1
 PHABRICATOR_BASE_DOMAIN=$(echo $PHABRICATOR_BASE_URI | cut -d'/' -f3-)
 
 pushd phabricator >> /dev/null
