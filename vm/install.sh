@@ -118,8 +118,13 @@ bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI $PHABRICATOR_ALTE
 echo "Configuring mailgun..."
 bash $DIR/configure_mailgun.sh $PHABRICATOR_BASE_URI || exit 1
 
-echo "Configuring notifications..."
-bash $DIR/configure_notifications.sh || exit 1
+# App engine doesn't support web sockets, so we can't route them through our nginx instance.
+# We'll need to expose the phabricator server directly.
+#  - Manage a subdomain that points to the phabricator server
+#  - Run nginx on the subdomain and route traffic to the local aphlict server on 22280.
+#  - Keep the subdomain's IP up-to-date if the server's ephemeral IP changes.
+#echo "Configuring notifications..."
+#bash $DIR/configure_notifications.sh || exit 1
 
 pushd phabricator >> /dev/null
 echo "Starting daemons"
