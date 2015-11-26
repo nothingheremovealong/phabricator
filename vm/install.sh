@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Recommended Google Cloud machine:
-#
-# Ubuntu 14.04
-# Enable "Project Access"
-# n1-standard-1 (1 vCPU, 3.75 GB memory)
-#
-
 if [ "$#" -lt 2 ]; then
   echo "Usage: ${BASH_SOURCE[0]} <sql_instance_name> <http://base_uri> (<http://alternate_base_uri>)"
   exit 1
@@ -14,6 +7,19 @@ fi
 
 SQL_INSTANCE=$1
 PHABRICATOR_BASE_URI=$2
+
+if ! /google/google-cloud-sdk/bin/gcloud --quiet sql instances list >> /dev/null 2> /dev/null; then
+  PROJECT=$(gcloud info | grep Project | cut -d"[" -f2 | cut -d"]" -f1)
+  echo
+  echo
+  echo "  Error: Google Cloud SQL API has not been enabled for $PROJECT."
+  echo
+  echo "  1. Please visit https://console.developers.google.com/apis/api/sqladmin/overview?project=$PROJECT"
+  echo "  2. Enable API button"
+  echo "  3. Rerun this script"
+  echo
+  exit 1
+fi
 
 if [ "$#" -eq 3 ]; then
   PHABRICATOR_ALTERNATE_BASE_URI=$3
@@ -132,6 +138,3 @@ popd >> /dev/null
 
 echo "Restarting apache..."
 apachectl restart
-
-# Follow-up guides:
-# - [Setting up mail](https://cloud.google.com/compute/docs/tutorials/sending-mail/)

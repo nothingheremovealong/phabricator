@@ -52,17 +52,6 @@ pushd /opt/phabricator >> /dev/null
 
 popd >> /dev/null
 
-# And setup the .my.cnf file so that mysql commands are authenticated.
-cat > ~/.my.cnf <<EOF
-[client]
-host=${SQL_HOST}
-user=${SQL_USER}
-password=${SQL_PASS}
-[mysqld]
-ft_stopword_file=$(pwd)/phabricator/resources/sql/stopwords.txt
-ft_boolean_syntax=' |-><()~*:""&^'
-EOF
-
 echo "Upgrading $SQL_INSTANCE db..."
 
 phabricator/bin/storage upgrade --force
