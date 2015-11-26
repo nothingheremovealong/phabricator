@@ -30,8 +30,8 @@ if [ -z "$(./bin/config get mailgun.api-key)" ]; then
   ./bin/config set mailgun.domain $domain
 fi
 
-./bin/config set metamta.mail-adapter PhabricatorMailImplementationMailgunAdapter
-./bin/config set metamta.domain $PHABRICATOR_BASE_DOMAIN
-./bin/config set metamta.default-address noreply@$PHABRICATOR_BASE_DOMAIN
+./bin/config set --database metamta.mail-adapter PhabricatorMailImplementationMailgunAdapter
+./bin/config set --database metamta.domain $PHABRICATOR_BASE_DOMAIN
+./bin/config set --database metamta.default-address noreply@$PHABRICATOR_BASE_DOMAIN
 
 popd >> /dev/null
