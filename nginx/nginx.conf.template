@@ -17,6 +17,15 @@ http {
   gzip on;
   gzip_disable "msie6";
 
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+  }
+  upstream websocket_pool {
+    ip_hash;
+    server $PHABRICATOR_IP:22280;
+  }
+  
   server {
     listen 8080;
     server_name  $PHABRICATOR_URL;
@@ -30,6 +39,13 @@ http {
     }
     location /_ah {
       root /usr/share/nginx/www;
+    }
+    location = /ws/ {
+      proxy_pass http://websocket_pool;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_read_timeout 999999999;
     }
   }
 

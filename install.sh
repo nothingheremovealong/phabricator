@@ -94,9 +94,10 @@ echo -n " Firewall rules..."
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
   echo " creating internal $NETWORK_NAME firewall rules..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create allow-internal \
+  gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
+    allow-internal \
     --allow "tcp:0-65535" \
-    --network $NETWORK_NAME \
+    --network "$NETWORK_NAME" \
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
@@ -178,6 +179,7 @@ if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b
     --machine-type "n1-standard-1" \
     --network "$NETWORK_NAME" \
     --zone "us-central1-a" \
+    --tags "phabricator" \
     --scopes sql,cloud-platform || exit 1
 fi
 

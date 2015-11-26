@@ -118,6 +118,9 @@ bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI $PHABRICATOR_ALTE
 echo "Configuring mailgun..."
 bash $DIR/configure_mailgun.sh $PHABRICATOR_BASE_URI || exit 1
 
+echo "Configuring notifications..."
+bash $DIR/configure_notifications.sh || exit 1
+
 pushd phabricator >> /dev/null
 echo "Starting daemons"
 ./bin/phd start
