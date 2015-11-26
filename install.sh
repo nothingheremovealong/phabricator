@@ -126,7 +126,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   fi
   
   # Mailgun TXT
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "v=spf1 include:mailgun.org ~all")" ]; then
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "TXT" | grep "mailgun.org")" ]; then
     echo " Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
     gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
     gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
