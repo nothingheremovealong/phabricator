@@ -48,25 +48,30 @@ fi
 
 echo OK
 
-echo -n " DNS..."
+if [ -n $CUSTOM_DOMAIN ]; then
+  echo -n " DNS for $CUSTOM_DOMAIN..."
+  
+  # Use the custom domain
+  PHABRICATOR_URL=$CUSTOM_DOMAIN
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep \"\b$DNS_NAME\b\")" ]; then
-  echo " creating DNS zone $DNS_NAME..."
-  gcloud --project="${PROJECT}" --quiet dns managed-zones create \
-    --dns-name="$PHABRICATOR_URL." \
-    --description="phabricator DNS" \
-    $DNS_NAME || exit 1
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep \"\b$DNS_NAME\b\")" ]; then
+    echo " creating DNS zone $DNS_NAME..."
+    gcloud --project="${PROJECT}" --quiet dns managed-zones create \
+      --dns-name="$PHABRICATOR_URL." \
+      --description="phabricator DNS" \
+      $DNS_NAME || exit 1
+  fi
+
+  # Mailgun DNS
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dnsdns record-sets --zone=\"$DNS_NAME\" list | grep \"v=spf1 include:mailgun.org ~all\")" ]; then
+    echo " adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
+    gcloud --project=${PROJECT} dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} dns record-sets transaction add --zone=$DNS_NAME --name="$PHABRICATOR_URL." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
+    gcloud --project=${PROJECT} dns record-sets transaction execute --zone=$DNS_NAME
+  fi
+
+  echo OK
 fi
-
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep \"\b$NETWORK_NAME\b\" | grep \"\btemp-allow-ssh\b\")" ]; then
-  echo " creating temporary $NETWORK_NAME ssh firewall rule..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
-    --allow "tcp:22" \
-    --network $NETWORK_NAME \
-    --source-ranges "0.0.0.0/0" || exit 1
-fi
-
-echo OK
 
 echo -n "SQL..."
 

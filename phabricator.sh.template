@@ -4,3 +4,6 @@ NETWORK_NAME=phabricator
 DNS_NAME=phabricator
 SQL_NAME=phabricator
 VM_NAME=phabricator
+
+# Uncomment if you have a custom domain.
+#CUSTOM_DOMAIN=
