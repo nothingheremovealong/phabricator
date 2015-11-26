@@ -2,7 +2,7 @@
 
 . lib/init.sh
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep \"\b$NETWORK_NAME\b\" | grep \"\btemp-allow-ssh\b\")" ]; then
   echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
     --allow "tcp:22" \
@@ -12,7 +12,7 @@ fi
 
 gcloud --project=${PROJECT} compute ssh $VM_NAME --zone us-central1-a
 
-if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep \"\b$NETWORK_NAME\b\" | grep \"\btemp-allow-ssh\b\")" ]; then
   echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
 fi
