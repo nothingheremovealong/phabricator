@@ -5,7 +5,7 @@
 # Terminate execution on command failure
 set -e
 
-if [ -n $CUSTOM_DOMAIN ]; then
+if [[ -n $CUSTOM_DOMAIN && ! $CUSTOM_DOMAIN_CONFIRMED ]]; then
   echo
   echo "You have provided a custom domain of $CUSTOM_DOMAIN"
   echo "In order to configure the domain you will need to perform the following steps:"
@@ -23,6 +23,8 @@ if [ -n $CUSTOM_DOMAIN ]; then
   
   echo "Please press enter to confirm that you've registered $CUSTOM_DOMAIN, or Ctrl-C to quit."
   read
+  echo >> phabricator.sh
+  echo "CUSTOM_DOMAIN_CONFIRMED=true" >> phabricator.sh
 fi
 
 # TODO: Might not always be appspot - how do we configure this?
@@ -72,7 +74,7 @@ echo OK
 
 echo -n "Network..."
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep \"\b$NETWORK_NAME\b\")" ]; then
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep "\b$NETWORK_NAME\b")" ]; then
   echo " creating $NETWORK_NAME network..."
   gcloud --project="${PROJECT}" --quiet compute networks create $NETWORK_NAME --range "10.0.0.0/24" || exit 1
 fi
@@ -81,7 +83,7 @@ echo OK
 
 echo -n " Firewall rules..."
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep \"\b$NETWORK_NAME\b\" | grep \"\ballow-internal\b\")" ]; then
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
   echo " creating internal $NETWORK_NAME firewall rules..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create allow-internal \
     --allow "tcp:0-65535" \
@@ -89,7 +91,7 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep \"\b$NETWORK_NAME\b\" | grep \"\btemp-allow-ssh\b\")" ]; then
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
   echo " creating temporary $NETWORK_NAME ssh firewall rule..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
     --allow "tcp:22" \
@@ -105,7 +107,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   # Use the custom domain
   PHABRICATOR_URL=$CUSTOM_DOMAIN
 
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep \"\b$DNS_NAME\b\")" ]; then
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep "\b$DNS_NAME\b")" ]; then
     echo " creating DNS zone $DNS_NAME..."
     gcloud --project="${PROJECT}" --quiet dns managed-zones create \
       --dns-name="$PHABRICATOR_URL." \
@@ -113,28 +115,35 @@ if [ -n $CUSTOM_DOMAIN ]; then
       $DNS_NAME || exit 1
   fi
 
+  echo OK
+
+  # Abort any existing transaction
+  if gcloud --project=${PROJECT} --quiet dns record-sets transaction --zone="$DNS_NAME" describe >> /dev/null 2> /dev/null; then
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction abort --zone=$DNS_NAME
+  fi
+  
   # Mailgun TXT
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone=\"$DNS_NAME\" list | grep \"v=spf1 include:mailgun.org ~all\")" ]; then
-    echo " adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
-    gcloud --project=${PROJECT} dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} dns record-sets transaction add --zone=$DNS_NAME --name="$PHABRICATOR_URL." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
-    gcloud --project=${PROJECT} dns record-sets transaction execute --zone=$DNS_NAME
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "v=spf1 include:mailgun.org ~all")" ]; then
+    echo " Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$PHABRICATOR_URL." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    echo OK
   fi
 
   # Mailgun email. CNAME
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone=\"$DNS_NAME\" list | grep \"CNAME\" | grep \"mailgun.org\")" ]; then
-    echo " adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
-    gcloud --project=${PROJECT} dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} dns record-sets transaction add --zone=$DNS_NAME --name="email.$PHABRICATOR_URL." --ttl=21600 --type=CNAME "mailgun.org"
-    gcloud --project=${PROJECT} dns record-sets transaction execute --zone=$DNS_NAME
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "CNAME" | grep "mailgun.org")" ]; then
+    echo " Adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="email.$PHABRICATOR_URL." --ttl=21600 --type=CNAME "mailgun.org."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    echo OK
   fi
-
-  echo OK
 fi
 
 echo -n "SQL..."
 
-if [ -z "$(gcloud --quiet --project=${PROJECT} sql instances list | grep \"\b$SQL_NAME\b\")" ]; then
+if [ -z "$(gcloud --quiet --project=${PROJECT} sql instances list | grep "\b$SQL_NAME\b")" ]; then
   echo -n " creating $SQL_NAME SQL database..."
   gcloud --quiet --project="${PROJECT}" sql instances create "$SQL_NAME" \
     --backup-start-time="00:00" \
@@ -158,7 +167,7 @@ echo OK
 
 echo -n "Compute instances..."
 
-if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep \"\b$VM_NAME\b\")" ]; then
+if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; then
   echo " creating $VM_NAME compute instance..."
   gcloud --quiet --project="${PROJECT}" compute instances create "$VM_NAME" \
     --boot-disk-size "10GB" \
@@ -170,11 +179,11 @@ if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep \"\
 fi
 
 echo -n "waiting for compute instance to activate..."
-while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep \"\b$VM_NAME\b\")" ]; do
+while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; do
   sleep 10
 done
 
-VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep \"\b$VM_NAME\b\" | awk '{print $4}')
+VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
 
 echo -n "internal IP: $VM_INTERNAL_IP. "
 echo OK
@@ -216,7 +225,7 @@ remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
 
-if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep \"\b$NETWORK_NAME\b\" | grep \"\btemp-allow-ssh\b\")" ]; then
+if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
   echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
 fi
