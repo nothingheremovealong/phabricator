@@ -211,9 +211,22 @@ sed -i.bak -e s/\\\$PHABRICATOR_ALTERNATE_URL/$PHABRICATOR_VERSIONED_URL/ nginx.
 sed -i.bak -e s/\\\$PHABRICATOR_IP/$VM_INTERNAL_IP/ nginx.conf
 rm nginx.conf.bak
 
-echo "deploying nginx..."
+COMPUTED_NGINX_SHA=$(find nginx -type f \( -exec shasum {} \; \) | shasum | cut -d' ' -f1)
 
-gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+if [ "$COMPUTED_NGINX_SHA" != "$NGINX_SHA" ]; then
+  if [ $(grep -c "^NGINX_SHA" phabricator.sh) -ne 0 ]; then
+    sed -i'.tmp' -e "s/^NGINX_SHA=.*/NGINX_SHA=$COMPUTED_NGINX_SHA/" phabricator.sh
+    rm -rf phabricator.sh.tmp
+  else
+    echo >> phabricator.sh
+    echo "NGINX_SHA=$COMPUTED_NGINX_SHA" >> phabricator.sh
+  fi
+
+  echo "deploying nginx..."
+  exit
+  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+fi
+exit
 
 echo OK
 
