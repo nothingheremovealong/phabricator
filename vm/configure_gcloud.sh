@@ -28,4 +28,3 @@ fi
   --path-update=true
 
 /google/google-cloud-sdk/bin/gcloud config set --installation component_manager/disable_update_check True
-

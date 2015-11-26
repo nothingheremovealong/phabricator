@@ -8,19 +8,6 @@ fi
 SQL_INSTANCE=$1
 PHABRICATOR_BASE_URI=$2
 
-if ! /google/google-cloud-sdk/bin/gcloud --quiet sql instances list >> /dev/null 2> /dev/null; then
-  PROJECT=$(gcloud info | grep Project | cut -d"[" -f2 | cut -d"]" -f1)
-  echo
-  echo
-  echo "  Error: Google Cloud SQL API has not been enabled for $PROJECT."
-  echo
-  echo "  1. Please visit https://console.developers.google.com/apis/api/sqladmin/overview?project=$PROJECT"
-  echo "  2. Enable API button"
-  echo "  3. Rerun this script"
-  echo
-  exit 1
-fi
-
 if [ "$#" -eq 3 ]; then
   PHABRICATOR_ALTERNATE_BASE_URI=$3
 else
