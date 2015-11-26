@@ -2,6 +2,29 @@
 
 . lib/init.sh
 
+# Terminate execution on command failure
+set -e
+
+if [ -n $CUSTOM_DOMAIN ]; then
+  echo
+  echo "You have provided a custom domain of $CUSTOM_DOMAIN"
+  echo "In order to configure the domain you will need to perform the following steps:"
+  echo
+  echo "  1. Visit https://console.developers.google.com/appengine/settings/domains?project=$PROJECT"
+  echo 
+  echo "  If $CUSTOM_DOMAIN is already listed there then your work is done here, otherwise continue with step 2:"
+  echo
+  echo "  2. Otherwise, visit https://console.developers.google.com/appengine/settings/domains/add?project=$PROJECT"
+  echo "  3. Register your custom domain."
+  echo "  4. In your domain registrar, add the CNAME record indicated in the previous step."
+  echo
+  echo "  Learn more about custom domains at https://cloud.google.com/appengine/docs/using-custom-domains-and-ssl?hl=en"
+  echo
+  
+  echo "Please press enter to confirm that you've registered $CUSTOM_DOMAIN, or Ctrl-C to quit."
+  read
+fi
+
 # TODO: Might not always be appspot - how do we configure this?
 PHABRICATOR_URL=$PROJECT.appspot.com
 PHABRICATOR_VERSIONED_URL=1-dot-$PROJECT.appspot.com
@@ -20,6 +43,17 @@ fi
 echo OK
 
 echo -n "Network..."
+
+if ! gcloud --project=${PROJECT} --quiet compute networks list >> /dev/null 2> /dev/null; then
+  echo
+  echo
+  echo "  Error: The Compute Engine API has not been enabled for $PROJECT."
+  echo
+  echo "  Please visit https://console.developers.google.com/apis/api/compute_component/overview?project=$PROJECT,"
+  echo "  click the Enable API button, and rerun this script"
+  echo
+  exit 1
+fi
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep \"\b$NETWORK_NAME\b\")" ]; then
   echo " creating $NETWORK_NAME network..."
