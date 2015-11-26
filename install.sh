@@ -42,18 +42,35 @@ fi
 
 echo OK
 
-echo -n "Network..."
+echo -n "APIs..."
 
 if ! gcloud --project=${PROJECT} --quiet compute networks list >> /dev/null 2> /dev/null; then
   echo
   echo
   echo "  Error: The Compute Engine API has not been enabled for $PROJECT."
   echo
-  echo "  Please visit https://console.developers.google.com/apis/api/compute_component/overview?project=$PROJECT,"
-  echo "  click the Enable API button, and rerun this script"
+  echo "  Please visit https://console.developers.google.com/apis/api/compute_component/overview?project=$PROJECT"
+  echo "  2. Enable API button"
+  echo "  3. Rerun this script"
   echo
   exit 1
 fi
+
+if ! gcloud --project=${PROJECT} --quiet dns managed-zones list >> /dev/null 2> /dev/null; then
+  echo
+  echo
+  echo "  Error: Google Cloud DNS API has not been enabled for $PROJECT."
+  echo
+  echo "  1. Please visit https://console.developers.google.com/apis/api/dns/overview?project=$PROJECT"
+  echo "  2. Enable API button"
+  echo "  3. Rerun this script"
+  echo
+  exit 1
+fi
+
+echo OK
+
+echo -n "Network..."
 
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep \"\b$NETWORK_NAME\b\")" ]; then
   echo " creating $NETWORK_NAME network..."
