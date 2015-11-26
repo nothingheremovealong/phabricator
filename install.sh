@@ -1,13 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -lt 1 ]; then
-  echo "Usage: ${BASH_SOURCE[0]} <project_name>"
-  exit 1
-fi
-
-PROJECT=$1
-
-. phabricator.sh
+. lib/init.sh
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
