@@ -10,6 +10,8 @@ function clone {
   if [ ! -d $1 ]; then
     echo "Cloning $1..."
     git clone $DIR/third_party/$1 $1
+  else
+    git fetch $DIR/third_party/$1
   fi
 
   pushd $DIR >> /dev/null
