@@ -207,7 +207,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]; then
     echo " Adding DNS notification subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
     gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=A $VM_EXTERNAL_IP
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
     gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
     echo OK
   fi
