@@ -26,6 +26,9 @@ handlers:
 - url: /file/.*
   script: dynamic
 
+- url: /diffusion/.*
+  script: dynamic
+
 - url: /ws/.*
   script: dynamic
 
