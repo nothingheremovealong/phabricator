@@ -267,6 +267,14 @@ echo OK
 
 popd >> /dev/null
 
+function remove_ssl {
+  if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+    echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
+    gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
+  fi
+}
+trap remove_ssl EXIT
+
 if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
   echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
@@ -287,11 +295,6 @@ remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHA
 if [ -n $NOTIFICATIONS_SUBDOMAIN ]; then
   remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
   remote_exec "cd /opt/phabricator;./bin/aphlict restart" || exit 1
-fi
-
-if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
-  echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
 fi
 
 echo "Visit http://$PHABRICATOR_URL to set up your phabricator instance."
