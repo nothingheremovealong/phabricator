@@ -45,8 +45,7 @@ echo "Phabricator will be installed to: ${ROOT}.";
 
 echo "Testing sudo..."
 sudo true
-if [ $? -ne 0 ]
-then
+if [ $? -ne 0 ]; then
   echo "ERROR: You must be able to sudo to run this script.";
   exit 1;
 fi;
@@ -87,6 +86,9 @@ then
 else
   echo "pcntl already installed";
 fi
+
+echo "Configuring users..."
+bash $DIR/configure_users.sh || exit 1
 
 echo "Configuring submodules..."
 bash $DIR/configure_submodules.sh || exit 1
