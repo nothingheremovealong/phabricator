@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ "$#" -lt 1 ]; then
+  echo "Usage: ${BASH_SOURCE[0]} <git_url>"
+  exit 1
+fi
+
+GIT_URL=$1
+
 if [ $(grep -c "^Port 22$" /usr/sbin/sshd) -ne 0  ]; then
   echo "Listening port set to 222.";
   sudo sed -i -e 's/^Port 22$/Port 222/' /usr/sbin/sshd
@@ -30,5 +37,5 @@ sudo sed -i -e "s:^AllowUsers .*$:AllowUsers git:" /etc/ssh/sshd_config.phabrica
 sudo $(whereis -b sshd | cut -d' ' -f2) -f /etc/ssh/sshd_config.phabricator
 
 pushd phabricator >> /dev/null
-sudo ./bin/config set diffusion.ssh-host n.codereview.cc
+sudo ./bin/config set diffusion.ssh-host $GIT_URL
 popd >> /dev/null

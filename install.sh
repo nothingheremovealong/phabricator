@@ -312,7 +312,7 @@ remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingh
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
 
 if [ -n $GIT_SUBDOMAIN ]; then
-  remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh http://$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
+  remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh $GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
 fi
 
 if [ -n $NOTIFICATIONS_SUBDOMAIN ]; then
