@@ -101,6 +101,16 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
+if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]; then
+  echo " creating git-ssh $NETWORK_NAME firewall rules..."
+  gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
+    allow-git-ssh \
+    --allow "tcp:22" \
+    --network "$NETWORK_NAME" \
+    --target-tags "phabricator" \
+    --source-ranges "0.0.0.0/0" || exit 1
+fi
+
 if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
   echo " creating notifications $NETWORK_NAME firewall rules..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
