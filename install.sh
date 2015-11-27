@@ -157,8 +157,9 @@ while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep 
 done
 
 VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
+VM_EXTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $5}')
 
-echo -n "internal IP: $VM_INTERNAL_IP. "
+echo -n "internal IP: $VM_INTERNAL_IP. external IP: $VM_EXTERNAL_IP"
 echo OK
 
 if [ -n $CUSTOM_DOMAIN ]; then
@@ -206,7 +207,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]; then
     echo " Adding DNS notification subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
     gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=A $VM_INTERNAL_IP
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=A $VM_EXTERNAL_IP
     gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
     echo OK
   fi
