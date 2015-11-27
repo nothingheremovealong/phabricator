@@ -159,7 +159,7 @@ done
 VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
 VM_EXTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $5}')
 
-echo -n "internal IP: $VM_INTERNAL_IP. external IP: $VM_EXTERNAL_IP"
+echo -n "internal IP: $VM_INTERNAL_IP. external IP: $VM_EXTERNAL_IP. "
 echo OK
 
 if [ -n $CUSTOM_DOMAIN ]; then
