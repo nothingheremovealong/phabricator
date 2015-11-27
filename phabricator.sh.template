@@ -7,3 +7,5 @@ VM_NAME=phabricator
 
 # Uncomment if you have a custom domain.
 #CUSTOM_DOMAIN=
+
+NOTIFICATIONS_SUBDOMAIN=n

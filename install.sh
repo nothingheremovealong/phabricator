@@ -101,49 +101,17 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-echo OK
-
-if [ -n $CUSTOM_DOMAIN ]; then
-  echo -n " DNS for $CUSTOM_DOMAIN..."
-  
-  # Use the custom domain
-  PHABRICATOR_URL=$CUSTOM_DOMAIN
-  
-  TOP_LEVEL_DOMAIN=$(echo $CUSTOM_DOMAIN | rev | cut -d'.' -f-2 | rev)
-
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep "\b$DNS_NAME\b")" ]; then
-    echo " creating DNS zone $DNS_NAME..."
-    gcloud --project="${PROJECT}" --quiet dns managed-zones create \
-      --dns-name="$TOP_LEVEL_DOMAIN" \
-      --description="phabricator DNS" \
-      $DNS_NAME || exit 1
-  fi
-
-  echo OK
-
-  # Abort any existing transaction
-  if gcloud --project=${PROJECT} --quiet dns record-sets transaction --zone="$DNS_NAME" describe >> /dev/null 2> /dev/null; then
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction abort --zone=$DNS_NAME
-  fi
-  
-  # Mailgun TXT
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "TXT" | grep "mailgun.org")" ]; then
-    echo " Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
-    echo OK
-  fi
-
-  # Mailgun email. CNAME
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "CNAME" | grep "mailgun.org")" ]; then
-    echo " Adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="email.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=CNAME "mailgun.org."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
-    echo OK
-  fi
+if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
+  echo " creating notifications $NETWORK_NAME firewall rules..."
+  gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
+    allow-notifications \
+    --allow "tcp:22280" \
+    --network "$NETWORK_NAME" \
+    --target-tags "phabricator" \
+    --source-ranges "0.0.0.0/0" || exit 1
 fi
+
+echo OK
 
 echo -n "SQL..."
 
@@ -192,6 +160,57 @@ VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | 
 
 echo -n "internal IP: $VM_INTERNAL_IP. "
 echo OK
+
+if [ -n $CUSTOM_DOMAIN ]; then
+  echo -n " DNS for $CUSTOM_DOMAIN..."
+  
+  # Use the custom domain
+  PHABRICATOR_URL=$CUSTOM_DOMAIN
+  
+  TOP_LEVEL_DOMAIN=$(echo $CUSTOM_DOMAIN | rev | cut -d'.' -f-2 | rev)
+
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep "\b$DNS_NAME\b")" ]; then
+    echo " creating DNS zone $DNS_NAME..."
+    gcloud --project="${PROJECT}" --quiet dns managed-zones create \
+      --dns-name="$TOP_LEVEL_DOMAIN" \
+      --description="phabricator DNS" \
+      $DNS_NAME || exit 1
+  fi
+
+  echo OK
+
+  # Abort any existing transaction
+  if gcloud --project=${PROJECT} --quiet dns record-sets transaction --zone="$DNS_NAME" describe >> /dev/null 2> /dev/null; then
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction abort --zone=$DNS_NAME
+  fi
+  
+  # Mailgun TXT
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bTXT\b" | grep "mailgun.org")" ]; then
+    echo " Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    echo OK
+  fi
+
+  # Mailgun email. CNAME
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bCNAME\b" | grep "mailgun.org")" ]; then
+    echo " Adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="email.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=CNAME "mailgun.org."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    echo OK
+  fi
+
+  # Notifications subdomain
+  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.\b")" ]; then
+    echo " Adding DNS notification subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=A $VM_INTERNAL_IP
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    echo OK
+  fi
+fi
 
 pushd $DIR/nginx >> /dev/null
 
@@ -254,6 +273,11 @@ function remote_exec {
 remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
+
+if [ -n $NOTIFICATIONS_SUBDOMAIN ]; then
+  remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
+  remote_exec "cd /opt/phabricator;./bin/aphlict restart" || exit 1
+fi
 
 if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
   echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
