@@ -122,7 +122,7 @@ bash $DIR/configure_mailgun.sh $PHABRICATOR_BASE_URI || exit 1
 
 pushd phabricator >> /dev/null
 echo "Starting daemons"
-./bin/phd start
+sudo su phabricator-daemon -c "./bin/phd start"
 popd >> /dev/null
 
 echo "Restarting apache..."
