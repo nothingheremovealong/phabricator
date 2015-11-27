@@ -28,3 +28,7 @@ sudo sed -i -e "s:^AllowUsers .*$:AllowUsers git:" /etc/ssh/sshd_config.phabrica
 
 # TODO: Turn this into a service.
 sudo $(whereis -b sshd | cut -d' ' -f2) -f /etc/ssh/sshd_config.phabricator
+
+pushd phabricator >> /dev/null
+sudo ./bin/config set diffusion.ssh-host n.codereview.cc
+popd >> /dev/null

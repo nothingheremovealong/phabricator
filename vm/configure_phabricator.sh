@@ -19,4 +19,3 @@ sudo ./bin/config set phd.user phabricator-daemon
 sudo ./bin/config set diffusion.ssh-user git
 
 popd >> /dev/null
-

@@ -101,7 +101,7 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]; then
+if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
   echo " creating git-ssh $NETWORK_NAME firewall rules..."
   gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
     allow-git-ssh \
@@ -223,10 +223,19 @@ if [ -n $CUSTOM_DOMAIN ]; then
   fi
 
   # Notifications subdomain
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]; then
-    echo " Adding DNS notification subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
+  if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
+    echo " Adding DNS subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
     gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
     gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    echo OK
+  fi
+
+  # Notifications subdomain
+  if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
+    echo " Adding DNS subdomain entry $GIT_SUBDOMAIN..."
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
+    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
     gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
     echo OK
   fi
@@ -301,6 +310,10 @@ function remote_exec {
 remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
+
+if [ -n $GIT_SUBDOMAIN ]; then
+  remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh http://$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
+fi
 
 if [ -n $NOTIFICATIONS_SUBDOMAIN ]; then
   remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
