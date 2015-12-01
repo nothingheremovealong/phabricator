@@ -24,12 +24,20 @@ gcloud_instances() {
   gcloud --project=${PROJECT} --quiet compute instances "$@"
 }
 
+gcloud_disks() {
+  gcloud --project=${PROJECT} --quiet compute disks "$@" --zone "us-central1-a"
+}
+
+gcloud_attach_disk() {
+  gcloud --project=${PROJECT} --quiet instances attach-disk $VM_NAME "$@" --zone "us-central1-a"
+}
+
 gcloud_dns_zones() {
   gcloud --project=${PROJECT} --quiet dns managed-zones "$@"
 }
 
 gcloud_dns_records() {
-  gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" "$@"
+  gcloud --project=${PROJECT} --quiet dns record-sets "$@" --zone="$DNS_NAME"
 }
 
 gcloud_firewall_rules() {

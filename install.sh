@@ -172,6 +172,18 @@ VM_EXTERNAL_IP=$(gcloud_instances list | grep "\b$VM_NAME\b" | awk '{print $5}')
 echo -n "internal IP: $VM_INTERNAL_IP. external IP: $VM_EXTERNAL_IP. "
 echo OK
 
+echo -n "Disks..."
+
+if [ -z "$(gcloud_disks list | grep "\bgit-repos\b")" ]; then
+  gcloud_disks create "git-repos" --size "200" --type "pd-standard" || exit 1
+fi
+
+if [ -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "git-repos")" ]; then
+  gcloud_attach_disk --disk "git-repos" || exit 1
+fi
+
+echo OK
+
 if [ -n $CUSTOM_DOMAIN ]; then
   echo -n " DNS for $CUSTOM_DOMAIN..."
   
