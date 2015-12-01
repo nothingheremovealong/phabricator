@@ -31,10 +31,8 @@ handlers:
 
 - url: /auth/register/
   script: dynamic
-#  secure: always
-  login: admin
+  login: login
 
 - url: /.*
   script: dynamic
-  login: admin
-#  secure: always
+  login: login
