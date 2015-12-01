@@ -302,9 +302,14 @@ if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | gre
     --source-ranges "0.0.0.0/0" || exit 1
 fi
 
+port="22"
+if [ ! -z "$(gcloud --quiet --project="${PROJECT}" compute instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
+  port="222"
+fi
+
 function remote_exec {
   echo "Executing $1..."
-  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone us-central1-a --command "$1" || exit 1
+  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone us-central1-a --ssh-flag="-p $port" --command "$1" || exit 1
 }
 
 remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
@@ -313,6 +318,11 @@ remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHA
 
 if [ -n $GIT_SUBDOMAIN ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh $GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
+
+  # Tag the machine so that we know how to ssh into it in the future
+  if [ -z "$(gcloud --quiet --project="${PROJECT}" compute instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
+    gcloud --quiet --project="${PROJECT}" compute instances add-tags --zone=us-central1-a $VM_NAME --tags ssh-222 
+  fi
 fi
 
 if [ -n $NOTIFICATIONS_SUBDOMAIN ]; then
