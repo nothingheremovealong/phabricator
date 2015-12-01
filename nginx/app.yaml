@@ -31,8 +31,8 @@ handlers:
 
 - url: /auth/register/
   script: dynamic
-  login: login
+  login: required
 
 - url: /.*
   script: dynamic
-  login: login
+  login: required
