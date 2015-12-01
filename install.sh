@@ -8,7 +8,7 @@ set -e
 RED='\033[0;31m'
 NC='\033[0m'
 
-if [[ -n $CUSTOM_DOMAIN && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
+if [[ -n "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
   echo -e ${RED}
   echo "You have provided a custom domain of $CUSTOM_DOMAIN"
   echo "In order to configure the domain you will need to perform the following steps:"
@@ -101,7 +101,7 @@ if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
+if [[ -n "$GIT_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
   echo " creating git-ssh $NETWORK_NAME firewall rules..."
   gcloud_firewall_rules create \
     allow-git-ssh \
@@ -111,7 +111,7 @@ if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_N
     --source-ranges "0.0.0.0/0" || exit 1
 fi
 
-if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
+if [[ -n "$NOTIFICATIONS_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
   echo " creating notifications $NETWORK_NAME firewall rules..."
   gcloud_firewall_rules create \
     allow-notifications \
@@ -184,7 +184,7 @@ fi
 
 echo OK
 
-if [ -n $CUSTOM_DOMAIN ]; then
+if [ -n "$CUSTOM_DOMAIN" ]; then
   echo -n " DNS for $CUSTOM_DOMAIN..."
   
   # Use the custom domain
@@ -235,7 +235,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   fi
 
   # Notifications subdomain
-  if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
+  if [[ -n "$NOTIFICATIONS_SUBDOMAIN" && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
     echo " Adding DNS subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
     gcloud_dns_records transaction start
     gcloud_dns_records transaction add --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
@@ -244,7 +244,7 @@ if [ -n $CUSTOM_DOMAIN ]; then
   fi
 
   # Notifications subdomain
-  if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
+  if [[ -n "$GIT_SUBDOMAIN" && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
     echo " Adding DNS subdomain entry $GIT_SUBDOMAIN..."
     gcloud_dns_records transaction start
     gcloud_dns_records transaction add --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
@@ -328,11 +328,11 @@ remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
 
-if [ -n $MAILGUN_APIKEY ]; then
+if [ -n "$MAILGUN_APIKEY" ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_mailgun.sh $PHABRICATOR_URL $MAILGUN_APIKEY" || exit 1
 fi
 
-if [ -n $GIT_SUBDOMAIN ]; then
+if [ -n "$GIT_SUBDOMAIN" ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh $GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
 
   # Tag the machine so that we know how to ssh into it in the future
@@ -341,7 +341,7 @@ if [ -n $GIT_SUBDOMAIN ]; then
   fi
 fi
 
-if [ -n $NOTIFICATIONS_SUBDOMAIN ]; then
+if [ -n "$NOTIFICATIONS_SUBDOMAIN" ]; then
   remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
   remote_exec "cd /opt/phabricator;./bin/aphlict restart" || exit 1
 fi
