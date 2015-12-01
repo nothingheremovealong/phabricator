@@ -316,7 +316,7 @@ remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
 
-if [ ! -n $CUSTOM_DOMAIN ]; then
+if [ -n $MAILGUN_APIKEY ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_mailgun.sh $PHABRICATOR_URL $MAILGUN_APIKEY" || exit 1
 fi
 
