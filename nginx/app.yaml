@@ -3,8 +3,12 @@ vm: true
 api_version: 1
 threadsafe: yes
 
-manual_scaling:
-  instances: 1
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 3
+  cool_down_period_sec: 60
+  cpu_utilization:
+    target_utilization: 0.5
 
 builtins:
 - appstats: on
