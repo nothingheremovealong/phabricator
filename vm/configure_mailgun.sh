@@ -12,20 +12,22 @@ pushd phabricator >> /dev/null
 
 echo "Configuring Phabricator for Mailgun..."
 
-echo "Please enter your Mailgun credentials from https://mailgun.com/cp/domains"
-echo
-echo "Learn more about using mailgun with Google Cloud Engine at:"
-echo "    https://cloud.google.com/compute/docs/tutorials/sending-mail/using-mailgun"
-echo
-echo -n "Mailgun API key: "
-read apikey
-echo
-echo -n "Mailgun domain (e.g. subdomain.domain.com): "
-read domain
-echo
+if [ -z "$(./bin/config get mailgun.api-key | grep "value" | grep -v "null")" ]; then
+  echo "Please enter your Mailgun credentials from https://mailgun.com/cp/domains"
+  echo
+  echo "Learn more about using mailgun with Google Cloud Engine at:"
+  echo "    https://cloud.google.com/compute/docs/tutorials/sending-mail/using-mailgun"
+  echo
+  echo -n "Mailgun API key: "
+  read apikey
+  echo
+  echo -n "Mailgun domain (e.g. subdomain.domain.com): "
+  read domain
+  echo
 
-./bin/config set mailgun.api-key $apikey
-./bin/config set mailgun.domain $domain
+  ./bin/config set mailgun.api-key $apikey
+  ./bin/config set mailgun.domain $domain
+fi
 
 ./bin/config set --database metamta.mail-adapter PhabricatorMailImplementationMailgunAdapter
 ./bin/config set --database metamta.domain $PHABRICATOR_BASE_DOMAIN
