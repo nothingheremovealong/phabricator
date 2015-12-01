@@ -7,9 +7,9 @@ fi
 
 GIT_URL=$1
 
-if [ $(grep -c "^Port 22$" /usr/sbin/sshd) -ne 0  ]; then
+if [ $(grep -c "^Port 22$" /etc/ssh/sshd_config) -ne 0  ]; then
   echo "Listening port set to 222.";
-  sudo sed -i -e 's/^Port 22$/Port 222/' /usr/sbin/sshd
+  sudo sed -i -e 's/^Port 22$/Port 222/' /etc/ssh/sshd_config
 
   sudo service ssh restart
 fi
