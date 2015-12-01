@@ -55,7 +55,7 @@ echo OK
 
 echo -n "APIs..."
 
-if ! gcloud --project=${PROJECT} --quiet compute networks list >> /dev/null 2> /dev/null; then
+if ! gcloud_networks list >> /dev/null 2>&1; then
   echo
   echo
   echo "  Error: The Compute Engine API has not been enabled for $PROJECT."
@@ -67,7 +67,7 @@ if ! gcloud --project=${PROJECT} --quiet compute networks list >> /dev/null 2> /
   exit 1
 fi
 
-if ! gcloud --project=${PROJECT} --quiet dns managed-zones list >> /dev/null 2> /dev/null; then
+if ! gcloud_dns_zones list >> /dev/null 2>&1; then
   echo
   echo
   echo "  Error: Google Cloud DNS API has not been enabled for $PROJECT."
@@ -83,27 +83,27 @@ echo OK
 
 echo -n "Network..."
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute networks list | grep "\b$NETWORK_NAME\b")" ]; then
+if [ -z "$(gcloud_networks list | grep "\b$NETWORK_NAME\b")" ]; then
   echo " creating $NETWORK_NAME network..."
-  gcloud --project="${PROJECT}" --quiet compute networks create $NETWORK_NAME --range "10.0.0.0/24" || exit 1
+  gcloud_networks create $NETWORK_NAME --range "10.0.0.0/24" || exit 1
 fi
 
 echo OK
 
 echo -n " Firewall rules..."
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
+if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
   echo " creating internal $NETWORK_NAME firewall rules..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
+  gcloud_firewall_rules create \
     allow-internal \
     --allow "tcp:0-65535" \
     --network "$NETWORK_NAME" \
     --source-ranges "10.0.0.0/24" || exit 1
 fi
 
-if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
+if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
   echo " creating git-ssh $NETWORK_NAME firewall rules..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
+  gcloud_firewall_rules create \
     allow-git-ssh \
     --allow "tcp:22" \
     --network "$NETWORK_NAME" \
@@ -111,9 +111,9 @@ if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet compute fir
     --source-ranges "0.0.0.0/0" || exit 1
 fi
 
-if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
+if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
   echo " creating notifications $NETWORK_NAME firewall rules..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create \
+  gcloud_firewall_rules create \
     allow-notifications \
     --allow "tcp:22280" \
     --network "$NETWORK_NAME" \
@@ -180,9 +180,9 @@ if [ -n $CUSTOM_DOMAIN ]; then
   
   TOP_LEVEL_DOMAIN=$(echo $CUSTOM_DOMAIN | rev | cut -d'.' -f-2 | rev)
 
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns managed-zones list | grep "\b$DNS_NAME\b")" ]; then
+  if [ -z "$(gcloud_dns_zones list | grep "\b$DNS_NAME\b")" ]; then
     echo " creating DNS zone $DNS_NAME..."
-    gcloud --project="${PROJECT}" --quiet dns managed-zones create \
+    gcloud_dns_zones create \
       --dns-name="$TOP_LEVEL_DOMAIN" \
       --description="phabricator DNS" \
       $DNS_NAME || exit 1
@@ -191,52 +191,52 @@ if [ -n $CUSTOM_DOMAIN ]; then
   echo OK
 
   # Abort any existing transaction
-  if gcloud --project=${PROJECT} --quiet dns record-sets transaction --zone="$DNS_NAME" describe >> /dev/null 2> /dev/null; then
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction abort --zone=$DNS_NAME
+  if gcloud_dns_records transaction describe >> /dev/null 2>&1; then
+    gcloud_dns_records transaction abort
   fi
   
   # Mailgun TXT
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bTXT\b" | grep "mailgun.org")" ]; then
+  if [ -z "$(gcloud_dns_records list | grep "\bTXT\b" | grep "mailgun.org")" ]; then
     echo " Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    gcloud_dns_records transaction start
+    gcloud_dns_records transaction add --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
+    gcloud_dns_records transaction execute
     echo OK
   fi
 
   # Mailgun email. CNAME
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bCNAME\b" | grep "mailgun.org")" ]; then
+  if [ -z "$(gcloud_dns_records list | grep "\bCNAME\b" | grep "mailgun.org")" ]; then
     echo " Adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="email.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=CNAME "mailgun.org."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    gcloud_dns_records transaction start
+    gcloud_dns_records transaction add --name="email.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=CNAME "mailgun.org."
+    gcloud_dns_records transaction execute
     echo OK
   fi
 
   # Mailgun mailgun MX
-  if [ -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bMX\b" | grep "mxa.mailgun.org")" ]; then
+  if [ -z "$(gcloud_dns_records list | grep "\bMX\b" | grep "mxa.mailgun.org")" ]; then
     echo " Adding DNS MX entries for mailgun..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=MX "10 mxa.mailgun.org." "10 mxb.mailgun.org."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    gcloud_dns_records transaction start
+    gcloud_dns_records transaction add --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=MX "10 mxa.mailgun.org." "10 mxb.mailgun.org."
+    gcloud_dns_records transaction execute
     echo OK
   fi
 
   # Notifications subdomain
-  if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
+  if [[ -n $NOTIFICATIONS_SUBDOMAIN && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
     echo " Adding DNS subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    gcloud_dns_records transaction start
+    gcloud_dns_records transaction add --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
+    gcloud_dns_records transaction execute
     echo OK
   fi
 
   # Notifications subdomain
-  if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud --project=${PROJECT} --quiet dns record-sets --zone="$DNS_NAME" list | grep "\bA\b" | grep "\b$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
+  if [[ -n $GIT_SUBDOMAIN && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
     echo " Adding DNS subdomain entry $GIT_SUBDOMAIN..."
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction start --zone=$DNS_NAME
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction add --zone=$DNS_NAME --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
-    gcloud --project=${PROJECT} --quiet dns record-sets transaction execute --zone=$DNS_NAME
+    gcloud_dns_records transaction start
+    gcloud_dns_records transaction add --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
+    gcloud_dns_records transaction execute
     echo OK
   fi
 fi
@@ -265,7 +265,7 @@ COMPUTED_NGINX_SHA=$(find . -type f \( -exec shasum {} \; \) | shasum | cut -d' 
 
 if [ "$COMPUTED_NGINX_SHA" != "$NGINX_SHA" ]; then
   echo "deploying nginx..."
-  gcloud --quiet --project="${PROJECT}" preview app deploy --version=1 --promote app.yaml || exit 1
+  gcloud_appengine deploy --version=1 --promote app.yaml || exit 1
 
   popd >> /dev/null
   
@@ -287,24 +287,24 @@ echo OK
 popd >> /dev/null
 
 function remove_ssl {
-  if [ "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+  if [ "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
     echo -n "Removing temporary $NETWORK_NAME ssh firewall rule..."
-    gcloud --project="${PROJECT}" --quiet compute firewall-rules delete temp-allow-ssh || exit 1
+    gcloud_firewall_rules delete temp-allow-ssh || exit 1
   fi
 }
 trap remove_ssl EXIT
 
-if [ -z "$(gcloud --project=${PROJECT} --quiet compute firewall-rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
-  echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
-  gcloud --project="${PROJECT}" --quiet compute firewall-rules create temp-allow-ssh \
-    --allow "tcp:22" \
-    --network $NETWORK_NAME \
-    --source-ranges "0.0.0.0/0" || exit 1
-fi
-
 port="22"
 if [ ! -z "$(gcloud --quiet --project="${PROJECT}" compute instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
   port="222"
+fi
+
+if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+  echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
+  gcloud_firewall_rules create temp-allow-ssh \
+    --allow "tcp:$port" \
+    --network $NETWORK_NAME \
+    --source-ranges "0.0.0.0/0" || exit 1
 fi
 
 function remote_exec {
