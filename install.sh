@@ -149,9 +149,9 @@ echo OK
 
 echo -n "Compute instances..."
 
-if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; then
+if [ -z "$(gcloud_instances list | grep "\b$VM_NAME\b")" ]; then
   echo " creating $VM_NAME compute instance..."
-  gcloud --quiet --project="${PROJECT}" compute instances create "$VM_NAME" \
+  gcloud_instances create "$VM_NAME" \
     --boot-disk-size "10GB" \
     --image "ubuntu-14-04" \
     --machine-type "n1-standard-1" \
@@ -162,12 +162,12 @@ if [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b
 fi
 
 echo -n "waiting for compute instance to activate..."
-while [ -z "$(gcloud --quiet --project=${PROJECT} compute instances list | grep "\b$VM_NAME\b")" ]; do
+while [ -z "$(gcloud_instances list | grep "\b$VM_NAME\b")" ]; do
   sleep 10
 done
 
-VM_INTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
-VM_EXTERNAL_IP=$(gcloud --project="${PROJECT}" --quiet compute instances list | grep "\b$VM_NAME\b" | awk '{print $5}')
+VM_INTERNAL_IP=$(gcloud_instances list | grep "\b$VM_NAME\b" | awk '{print $4}')
+VM_EXTERNAL_IP=$(gcloud_instances list | grep "\b$VM_NAME\b" | awk '{print $5}')
 
 echo -n "internal IP: $VM_INTERNAL_IP. external IP: $VM_EXTERNAL_IP. "
 echo OK
@@ -295,7 +295,7 @@ function remove_ssl {
 trap remove_ssl EXIT
 
 port="22"
-if [ ! -z "$(gcloud --quiet --project="${PROJECT}" compute instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
+if [ ! -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
   port="222"
 fi
 
@@ -320,8 +320,8 @@ if [ -n $GIT_SUBDOMAIN ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh $GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
 
   # Tag the machine so that we know how to ssh into it in the future
-  if [ -z "$(gcloud --quiet --project="${PROJECT}" compute instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
-    gcloud --quiet --project="${PROJECT}" compute instances add-tags --zone=us-central1-a $VM_NAME --tags ssh-222 
+  if [ -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
+    gcloud_instances add-tags --zone=us-central1-a $VM_NAME --tags ssh-222 
   fi
 fi
 

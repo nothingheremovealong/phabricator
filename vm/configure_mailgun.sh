@@ -26,8 +26,9 @@ if [ -z "$(./bin/config get mailgun.api-key | grep "value" | grep -v "null")" ];
   echo
 
   ./bin/config set mailgun.api-key $apikey
-  ./bin/config set mailgun.domain $domain
 fi
+
+./bin/config set mailgun.domain $domain
 
 ./bin/config set --database metamta.mail-adapter PhabricatorMailImplementationMailgunAdapter
 ./bin/config set --database metamta.domain $PHABRICATOR_BASE_DOMAIN

@@ -20,6 +20,10 @@ gcloud_networks() {
   gcloud --project=${PROJECT} --quiet compute networks "$@"
 }
 
+gcloud_instances() {
+  gcloud --project=${PROJECT} --quiet compute instances "$@"
+}
+
 gcloud_dns_zones() {
   gcloud --project=${PROJECT} --quiet dns managed-zones "$@"
 }
