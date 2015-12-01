@@ -5,6 +5,8 @@ DNS_NAME=phabricator
 SQL_NAME=phabricator
 VM_NAME=phabricator
 
+#MAILGUN_APIKEY=
+
 # Uncomment if you have a custom domain.
 #CUSTOM_DOMAIN=
 
