@@ -355,7 +355,7 @@ if [ -n "$NOTIFICATIONS_SUBDOMAIN" ]; then
   remote_exec "sed -i.bak -e s/#NOTIFICATIONS_SUBDOMAIN=/NOTIFICATIONS_SUBDOMAIN=$NOTIFICATIONS_SUBDOMAIN/ startup.sh" || exit 1
   
   remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
-  remote_exec "cd /opt/phabricator;./bin/aphlict restart" || exit 1
+  remote_exec "cd /opt/phabricator;sudo su aphlict -c './bin/aphlict restart'" || exit 1
 fi
 
 # Install the startup script.
