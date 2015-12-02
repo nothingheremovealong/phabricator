@@ -339,6 +339,8 @@ if [ -n "$GIT_SUBDOMAIN" ]; then
   if [ -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
     gcloud_instances add-tags --zone=us-central1-a $VM_NAME --tags ssh-222 
   fi
+
+  port="222"
 fi
 
 if [ -n "$NOTIFICATIONS_SUBDOMAIN" ]; then
