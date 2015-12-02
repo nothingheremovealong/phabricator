@@ -358,6 +358,9 @@ if [ -n "$NOTIFICATIONS_SUBDOMAIN" ]; then
   remote_exec "cd /opt/phabricator;./bin/aphlict restart" || exit 1
 fi
 
+# Install the startup script.
+remote_exec "sudo /google/google-cloud-sdk/bin/gcloud --quiet compute instances add-metadata $VM_NAME --metadata-from-file startup-script=startup.sh" || exit 1
+
 echo "Visit http://$PHABRICATOR_URL to set up your phabricator instance."
 echo "Visit https://console.developers.google.com/permissions/projectpermissions?project=$PROJECT to configure your project's permissions."
 echo "Setup complete."
