@@ -328,11 +328,19 @@ remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
 remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
 
+# Configure the startup script.
+remote_exec "cp ~/phabricator/vm/startup.sh .; \
+  sed -i.bak -e s/#TOP_LEVEL_DOMAIN=/TOP_LEVEL_DOMAIN=$TOP_LEVEL_DOMAIN/ startup.sh; \
+  sed -i.bak -e s/#VM_NAME=/VM_NAME=$VM_NAME/ startup.sh; \
+  sed -i.bak -e s/#DNS_NAME=/DNS_NAME=$DNS_NAME/ startup.sh" || exit 1
+
 if [ -n "$MAILGUN_APIKEY" ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_mailgun.sh $PHABRICATOR_URL $MAILGUN_APIKEY" || exit 1
 fi
 
 if [ -n "$GIT_SUBDOMAIN" ]; then
+  remote_exec "sed -i.bak -e s/#GIT_SUBDOMAIN=/GIT_SUBDOMAIN=$GIT_SUBDOMAIN/ startup.sh" || exit 1
+
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh $GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
 
   # Tag the machine so that we know how to ssh into it in the future
@@ -344,6 +352,8 @@ if [ -n "$GIT_SUBDOMAIN" ]; then
 fi
 
 if [ -n "$NOTIFICATIONS_SUBDOMAIN" ]; then
+  remote_exec "sed -i.bak -e s/#NOTIFICATIONS_SUBDOMAIN=/NOTIFICATIONS_SUBDOMAIN=$NOTIFICATIONS_SUBDOMAIN/ startup.sh" || exit 1
+  
   remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
   remote_exec "cd /opt/phabricator;./bin/aphlict restart" || exit 1
 fi
