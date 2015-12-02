@@ -15,7 +15,7 @@ VM_EXTERNAL_IP=$(gcloud_instances list | grep "\b$VM_NAME\b" | awk '{print $5}')
 pushd /opt/phabricator >> /dev/null
 
 sudo su phabricator-daemon -c "./bin/phd restart"
-./bin/aphlict restart
+sudo su aphlict -c "./bin/aphlict start"
 sudo $(whereis -b sshd | cut -d' ' -f2) -f /etc/ssh/sshd_config.phabricator
 
 gcloud_dns_records() {

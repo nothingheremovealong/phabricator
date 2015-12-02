@@ -24,5 +24,6 @@ sudo ./bin/config set notification.client-uri $NOTIFICATIONS_URL:22280
 
 sudo touch /var/log/aphlict.log
 sudo chmod a+w /var/log/aphlict.log
+sudo chown -R aphlict:aphlict /var/tmp/aphlict/
 
 popd >> /dev/null
