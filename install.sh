@@ -243,7 +243,7 @@ if [ -n "$CUSTOM_DOMAIN" ]; then
     echo OK
   fi
 
-  # Notifications subdomain
+  # Git subdomain
   if [[ -n "$GIT_SUBDOMAIN" && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN.")" ]]; then
     echo " Adding DNS subdomain entry $GIT_SUBDOMAIN..."
     gcloud_dns_records transaction start
