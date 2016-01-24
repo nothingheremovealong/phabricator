@@ -25,13 +25,13 @@ sudo git submodule update
 
 popd >> /dev/null
 
-pushd phabricator >> /dev/null
-
 ### UPDATE WORKING COPIES ######################################################
 
 sudo $DIR/configure_submodules.sh
 
 ### CYCLE WEB SERVER AND DAEMONS ###############################################
+
+pushd phabricator >> /dev/null
 
 # Stop daemons.
 sudo su phabricator-daemon -c "./bin/phd stop"
