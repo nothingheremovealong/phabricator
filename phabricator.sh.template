@@ -4,6 +4,7 @@ NETWORK_NAME=phabricator
 DNS_NAME=phabricator
 SQL_NAME=phabricator
 VM_NAME=phabricator
+ZONE=us-central1-a
 
 #MAILGUN_APIKEY=
 

@@ -25,11 +25,11 @@ gcloud_instances() {
 }
 
 gcloud_disks() {
-  gcloud --project=${PROJECT} --quiet compute disks "$@" --zone "us-central1-a"
+  gcloud --project=${PROJECT} --quiet compute disks "$@" --zone "$ZONE"
 }
 
 gcloud_attach_disk() {
-  gcloud --project=${PROJECT} --quiet compute instances attach-disk $VM_NAME "$@" --zone "us-central1-a"
+  gcloud --project=${PROJECT} --quiet compute instances attach-disk $VM_NAME "$@" --zone "$ZONE"
 }
 
 gcloud_dns_zones() {

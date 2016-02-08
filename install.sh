@@ -132,7 +132,7 @@ if [ -z "$(gcloud --quiet --project=${PROJECT} sql instances list | grep "\b$SQL
     --assign-ip \
     --authorized-networks "0.0.0.0/0" \
     --authorized-gae-apps "${PROJECT}" \
-    --gce-zone "us-central1-a" \
+    --gce-zone "$ZONE" \
     --tier="D1" \
     --pricing-plan="PACKAGE" \
     --database-flags="sql_mode=STRICT_ALL_TABLES,ft_min_word_len=3,max_allowed_packet=33554432" || exit 1
@@ -156,7 +156,7 @@ if [ -z "$(gcloud_instances list | grep "\b$VM_NAME\b")" ]; then
     --image "ubuntu-14-04" \
     --machine-type "n1-standard-1" \
     --network "$NETWORK_NAME" \
-    --zone "us-central1-a" \
+    --zone "$ZONE" \
     --tags "phabricator" \
     --scopes sql,cloud-platform || exit 1
 fi
@@ -178,7 +178,7 @@ if [ -z "$(gcloud_disks list | grep "\bgit-repos\b")" ]; then
   gcloud_disks create "git-repos" --size "200" --type "pd-standard" || exit 1
 fi
 
-if [ -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "git-repos")" ]; then
+if [ -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "git-repos")" ]; then
   gcloud_attach_disk --disk "git-repos" || exit 1
 fi
 
@@ -307,7 +307,7 @@ function remove_ssl {
 trap remove_ssl EXIT
 
 port="22"
-if [ ! -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
+if [ ! -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "ssh-222")" ]; then
   port="222"
 fi
 
@@ -321,7 +321,7 @@ fi
 
 function remote_exec {
   echo "Executing $1..."
-  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone us-central1-a --ssh-flag="-p $port" --command "$1" || exit 1
+  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone $ZONE --ssh-flag="-p $port" --command "$1" || exit 1
 }
 
 remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
@@ -344,8 +344,8 @@ if [ -n "$GIT_SUBDOMAIN" ]; then
   remote_exec "cd /opt;bash ~/phabricator/vm/configure_ssh.sh $GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
 
   # Tag the machine so that we know how to ssh into it in the future
-  if [ -z "$(gcloud_instances describe $VM_NAME --zone=us-central1-a | grep "ssh-222")" ]; then
-    gcloud_instances add-tags --zone=us-central1-a $VM_NAME --tags ssh-222 
+  if [ -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "ssh-222")" ]; then
+    gcloud_instances add-tags --zone=$ZONE $VM_NAME --tags ssh-222 
   fi
 
   port="222"
