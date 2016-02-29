@@ -25,10 +25,6 @@ sudo git submodule update
 
 popd >> /dev/null
 
-### UPDATE WORKING COPIES ######################################################
-
-sudo $DIR/configure_submodules.sh
-
 ### CYCLE WEB SERVER AND DAEMONS ###############################################
 
 pushd phabricator >> /dev/null
@@ -46,6 +42,9 @@ sudo su aphlict -c "./bin/aphlict stop"
 
 sudo apachectl stop
 
+### UPDATE WORKING COPIES ######################################################
+
+sudo $DIR/configure_submodules.sh
 
 # Upgrade the database schema. You may want to add the "--force" flag to allow
 # this script to run noninteractively.
