@@ -1,5 +1,7 @@
 #!/bin/sh
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 set -e
 set -x
 
@@ -14,8 +16,6 @@ set -x
 sudo apt-get -qq update
 sudo apt-get upgrade -y
 sudo apt-get autoremove -y
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 pushd $DIR >> /dev/null
 
@@ -44,7 +44,11 @@ sudo apachectl stop
 
 ### UPDATE WORKING COPIES ######################################################
 
+popd >> /dev/null
+
 sudo $DIR/configure_submodules.sh
+
+pushd phabricator >> /dev/null
 
 # Upgrade the database schema. You may want to add the "--force" flag to allow
 # this script to run noninteractively.
