@@ -7,14 +7,16 @@ fi
 
 PROJECT=$1
 
-if [ ! -f phabricator.sh ]; then
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ ! -f $DIR/../phabricator.sh ]; then
   echo "No phabricator.sh was found."
   echo "A standard one has been made for you based off phabricator.sh.template."
   echo "Please configure phabricator.sh to your preferences."
-  cp phabricator.sh.template phabricator.sh
+  cp $DIR/../phabricator.sh.template $DIR/../phabricator.sh
   exit 1
 fi
-. phabricator.sh
+. $DIR/../phabricator.sh
 
 gcloud_networks() {
   gcloud --project=${PROJECT} --quiet compute networks "$@"

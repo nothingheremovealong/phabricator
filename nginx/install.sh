@@ -1,1 +1,3 @@
-gcloud preview app deploy --version=1 --promote app.yaml
+. ../lib/init.sh
+
+gcloud_appengine deploy --version=1 --promote app.yaml
