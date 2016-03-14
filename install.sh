@@ -178,8 +178,16 @@ if [ -z "$(gcloud_disks list | grep "\bgit-repos\b")" ]; then
   gcloud_disks create "git-repos" --size "200" --type "pd-standard" || exit 1
 fi
 
+if [ -z "$(gcloud_disks list | grep "\bfile-storage\b")" ]; then
+  gcloud_disks create "file-storage" --size "200" --type "pd-standard" || exit 1
+fi
+
 if [ -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "git-repos")" ]; then
   gcloud_attach_disk --disk "git-repos" || exit 1
+fi
+
+if [ -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "file-storage")" ]; then
+  gcloud_attach_disk --disk "file-storage" || exit 1
 fi
 
 echo OK
