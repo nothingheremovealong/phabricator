@@ -138,6 +138,17 @@ registrar's namespace editor for your domain. These changes may take up to 24 ho
 You will know once your DNS changes have propagated when you visit your Mailgun project page and
 your domain has been verified.
 
+#### Don't want to wait for propagation?
+
+If propagation is taking a long time you can set up a temporary mapping by modifying any of the IPs
+found at:
+
+https://console.cloud.google.com/appengine/settings/domains
+
+to your domain in your `/etc/hosts` file.
+
+    some.ip<tab>yourdomain.com
+
 ## TODO
 
 - ☐ Support https on the phabricator vm and nginx instance.

@@ -20,7 +20,7 @@ if [[ ! -z "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
   echo "  Learn more about custom domains at https://cloud.google.com/appengine/docs/using-custom-domains-and-ssl?hl=en"
   echo -e ${NC}
 
-  echo "Please press enter to confirm that you've registered $CUSTOM_DOMAIN, or Ctrl-C to quit."
+  echo "Please press enter to confirm that you've registered $CUSTOM_DOMAIN as a custom domain, or Ctrl-C to quit."
   read
 
   if [ $(grep -c "^CUSTOM_DOMAIN_CONFIRMED" $CONFIG_PATH) -ne 0 ]; then
@@ -424,8 +424,6 @@ fi
 status_ok
 
 popd >> /dev/null
-
-trap remove_ssl EXIT
 
 open_ssh
 
