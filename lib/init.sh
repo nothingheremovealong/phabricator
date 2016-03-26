@@ -134,6 +134,10 @@ gcloud_attach_disk() {
   gcloud_project compute instances attach-disk $VM_NAME "$@" --zone "$ZONE"
 }
 
+gcloud_zones() {
+  gcloud_project compute zones "$@"
+}
+
 gcloud_dns_zones() {
   gcloud_project dns managed-zones "$@"
 }

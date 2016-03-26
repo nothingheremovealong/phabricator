@@ -87,52 +87,6 @@ if [ -z "$(gcloud_networks list | grep "\b$NETWORK_NAME\b")" ]; then
 fi
 status_ok
 
-status "  Allow internal http..."
-if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal-http\b")" ]; then
-  status_no
-
-  status "- Creating firewall rule 'allow-internal-http'..."
-  gcloud_firewall_rules create \
-    allow-internal-http \
-    --allow "tcp:80" \
-    --network "$NETWORK_NAME" \
-    --source-ranges "10.0.0.0/24" \
-    2>&1 | logger || exit 1
-fi
-status_ok
-
-# Sub-domain configuration
-
-if [ ! -z "$CUSTOM_DOMAIN" ]; then
-  status "  Allow git ssh..."
-  if [[ ! -z "$GIT_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
-    status_no
-
-    status "- Creating firewall rule 'allow-git-ssh'..."
-    gcloud_firewall_rules create \
-      allow-git-ssh \
-      --allow "tcp:22" \
-      --network "$NETWORK_NAME" \
-      --target-tags "phabricator" \
-      2>&1 | logger || exit 1
-  fi
-  status_ok
-
-  status "  Allow notifications..."
-  if [[ ! -z "$NOTIFICATIONS_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
-    status_no
-
-    status "- Creating firewall rule 'allow-notifications'..."
-    gcloud_firewall_rules create \
-      allow-notifications \
-      --allow "tcp:22280" \
-      --network "$NETWORK_NAME" \
-      --target-tags "phabricator" \
-      2>&1 | logger || exit 1
-  fi
-  status_ok
-fi
-
 status "Static external IP..."
 if [ -z "$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b")" ]; then
   status_no
@@ -235,7 +189,54 @@ checkdisk() {
 checkdisk "git-repos"
 checkdisk "file-storage"
 
+status "Allow internal http..."
+if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal-http\b")" ]; then
+  status_no
+
+  REGION=$(gcloud_zones list | grep $ZONE | awk '{print $2}')
+  SUBNET_RANGE=$(gcloud_networks subnets list | grep $NETWORK_NAME | grep $REGION | awk '{print $4}')
+
+  status "- Creating firewall rule 'allow-internal-http'..."
+  gcloud_firewall_rules create \
+    allow-internal-http \
+    --allow "tcp:8080" \
+    --network "$NETWORK_NAME" \
+    --source-ranges "$SUBNET_RANGE" \
+    2>&1 | logger || exit 1
+fi
+status_ok
+
+# Sub-domain configuration
+
 if [ ! -z "$CUSTOM_DOMAIN" ]; then
+  status "Allow git ssh..."
+  if [[ ! -z "$GIT_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-git-ssh\b")" ]]; then
+    status_no
+
+    status "- Creating firewall rule 'allow-git-ssh'..."
+    gcloud_firewall_rules create \
+      allow-git-ssh \
+      --allow "tcp:22" \
+      --network "$NETWORK_NAME" \
+      --target-tags "phabricator" \
+      2>&1 | logger || exit 1
+  fi
+  status_ok
+
+  status "Allow notifications..."
+  if [[ ! -z "$NOTIFICATIONS_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-notifications\b")" ]]; then
+    status_no
+
+    status "- Creating firewall rule 'allow-notifications'..."
+    gcloud_firewall_rules create \
+      allow-notifications \
+      --allow "tcp:22280" \
+      --network "$NETWORK_NAME" \
+      --target-tags "phabricator" \
+      2>&1 | logger || exit 1
+  fi
+  status_ok
+
   # Use the custom domain
   PHABRICATOR_URL=$CUSTOM_DOMAIN
   TOP_LEVEL_DOMAIN=$(echo $CUSTOM_DOMAIN | rev | cut -d'.' -f-2 | rev)
