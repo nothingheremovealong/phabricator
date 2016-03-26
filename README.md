@@ -149,6 +149,18 @@ to your domain in your `/etc/hosts` file.
 
     some.ip<tab>yourdomain.com
 
+## SSL certificate
+
+Follow the steps at:
+
+https://cloud.google.com/appengine/docs/python/console/using-custom-domains-and-ssl#obtaining_a_certificate
+
+to acquire an SSL certificate and the steps at:
+
+https://cloud.google.com/appengine/docs/python/console/using-custom-domains-and-ssl#adding_ssl_to_your_custom_domain
+
+to register the certificate with your custom domain.
+
 ## TODO
 
 - ☐ Support https on the phabricator vm and nginx instance.
