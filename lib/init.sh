@@ -157,3 +157,41 @@ gcloud_appengine() {
 gcloud_sql_instances() {
   gcloud_project sql instances "$@"
 }
+
+# SSL utils
+
+close_ssh() {
+  status "ssh firewall"
+  if [ "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+    status_no
+
+    status "Removing temporary $NETWORK_NAME ssh firewall rule..."
+    gcloud_firewall_rules delete temp-allow-ssh \
+      2>&1 | logger || exit 1
+  fi
+  status_ok
+}
+
+open_ssh() {
+  export PORT="22"
+  if [ ! -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "ssh-222")" ]; then
+    PORT="222"
+  fi
+
+  trap close_ssh EXIT
+
+  if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+    echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
+    gcloud_firewall_rules create temp-allow-ssh \
+      --allow "tcp:$PORT" \
+      --network $NETWORK_NAME \
+      --target-tags "phabricator" \
+      --source-ranges "0.0.0.0/0" \
+      2>&1 | logger || exit 1
+  fi
+}
+
+remote_exec() {
+  echo "Executing $1..."
+  gcloud --project=${PROJECT} compute ssh $VM_NAME --zone $ZONE --ssh-flag="-p $PORT" --command "$1" || exit 1
+}

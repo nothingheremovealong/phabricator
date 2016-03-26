@@ -2,6 +2,17 @@
 
 . lib/init.sh
 
-git submodule foreach "git fetch;git checkout origin/stable"
-git add .
-git commit -am "Upgrading phabricator to latest stable." || exit 1
+# Terminate execution on command failure
+set -e
+
+echo "Syncing submodules..."
+git submodule foreach "git fetch;git checkout origin/stable" >> /dev/null 2>&1
+git add vm/third_party >> /dev/null 2>&1
+git commit -m "Upgrading phabricator to latest stable." >> /dev/null 2>&1 || { echo "Nothing has changed."; exit 0; }
+
+git push origin master >> /dev/null 2>&1
+
+open_ssh
+
+remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
+remote_exec "cd /opt;bash ~/phabricator/vm/upgrade.sh" || exit 1
