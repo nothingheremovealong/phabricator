@@ -64,7 +64,7 @@ export SQL_USER=root
 echo "Setting up a connection to ${SQL_INSTANCE} at ${SQL_HOST} as ${SQL_USER}"
 
 export SQL_PASS="$(uuidgen)"
-/google/google-cloud-sdk/bin/gcloud sql instances set-root-password --password "${SQL_PASS}" "${SQL_INSTANCE}"
+sudo /google/google-cloud-sdk/bin/gcloud sql instances set-root-password --password "${SQL_PASS}" "${SQL_INSTANCE}"
 
 pushd /opt/phabricator >> /dev/null
 
@@ -81,6 +81,6 @@ sudo ./bin/config set phd.taskmasters 4
 
 popd >> /dev/null
 
-echo "Upgrading $SQL_INSTANCE db..."
+echo "Upgrading $SQL_INSTANCE db (this may take a few minutes)..."
 
 sudo phabricator/bin/storage upgrade --force

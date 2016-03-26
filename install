@@ -134,6 +134,7 @@ if [ -z "$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b")" ]; then
   gcloud_addresses create $ADDRESS_NAME \
     2>&1 | logger || exit 1
 fi
+status_ok
 
 STATIC_EXTERNAL_IP=$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b" | cut -d' ' -f3)
 

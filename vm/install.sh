@@ -126,4 +126,4 @@ sudo su phabricator-daemon -c "./bin/phd restart"
 popd >> /dev/null
 
 echo "Restarting apache..."
-apachectl restart
+sudo apachectl restart
