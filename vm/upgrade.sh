@@ -3,7 +3,6 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 set -e
-set -x
 
 # This is an example script for updating Phabricator, similar to the one used to
 # update <https://secure.phabricator.com/>. It might not work perfectly on your
