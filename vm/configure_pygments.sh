@@ -6,4 +6,4 @@ set -e
 sudo apt-get install -y python-pip
 
 # Install pygments
-pip install Pygments
+sudo pip install Pygments
