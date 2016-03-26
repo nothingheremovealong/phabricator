@@ -86,6 +86,12 @@ To upgrade phabricator you may run:
 
 Estimated time to complete: 3 minutes (totally automated after invocation).
 
+### Connecting to the phabricator instance
+
+To ssh into your instance you must run:
+
+    ./ssh -p <project name>
+
 ## Sending mail
 
 Sending mail requires that your project has a custom domain.
