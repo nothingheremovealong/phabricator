@@ -126,12 +126,24 @@ if [[ -n "$NOTIFICATIONS_SUBDOMAIN" && -z "$(gcloud_firewall_rules list | grep "
 fi
 status_ok
 
+status "Static external IP..."
+if [ -z "$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b")" ]; then
+  status_no
+
+  status "- Requesting static external IP..."
+  gcloud_addresses create $ADDRESS_NAME \
+    2>&1 | logger || exit 1
+fi
+
+STATIC_EXTERNAL_IP=$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b") | cut -d' ' -f3)
+
 status "Compute instances..."
 if [ -z "$(gcloud_instances list | grep "\b$VM_NAME\b")" ]; then
   status_no
 
   status "- Creating $VM_NAME compute instance..."
   gcloud_instances create "$VM_NAME" \
+    --address "$STATIC_EXTERNAL_IP" \
     --boot-disk-size "10GB" \
     --image "ubuntu-14-04" \
     --machine-type "n1-standard-1" \
@@ -164,6 +176,7 @@ if [ -z "$(gcloud_sql_instances list 2> /dev/null | grep "\b$SQL_NAME\b")" ]; th
   status "- Creating $SQL_NAME 1st generation SQL database (may take a few minutes)..."
   gcloud_sql_instances create "$SQL_NAME" \
     --activation-policy=ALWAYS \
+    --authorized-networks="$VM_EXTERNAL_IP" \
     --assign-ip \
     --backup-start-time="00:00" \
     --gce-zone "$ZONE" \

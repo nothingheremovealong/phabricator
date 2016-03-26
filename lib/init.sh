@@ -122,6 +122,10 @@ gcloud_instances() {
   gcloud_project compute instances "$@"
 }
 
+gcloud_addresses() {
+  gcloud_project compute addresses "$@"
+}
+
 gcloud_disks() {
   gcloud_project compute disks "$@" --zone "$ZONE"
 }

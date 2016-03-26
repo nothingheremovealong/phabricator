@@ -13,4 +13,5 @@ GIT_SUBDOMAIN=git
 NETWORK_NAME=phabricator
 DNS_NAME=phabricator
 SQL_NAME=phabricator
+ADDRESS_NAME=phabricator
 VM_NAME=phabricator
