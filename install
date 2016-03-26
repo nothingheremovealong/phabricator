@@ -14,9 +14,8 @@ if [[ ! -z "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
   echo
   echo "  If $CUSTOM_DOMAIN is already listed there then your work is done here, otherwise continue with step 2:"
   echo
-  echo "  2. Otherwise, visit https://console.developers.google.com/appengine/settings/domains/add?project=$PROJECT"
+  echo "  2. Visit https://console.developers.google.com/appengine/settings/domains/add?project=$PROJECT"
   echo "  3. Register your custom domain."
-  echo "  4. In your domain registrar, add the CNAME record indicated in the previous step."
   echo
   echo "  Learn more about custom domains at https://cloud.google.com/appengine/docs/using-custom-domains-and-ssl?hl=en"
   echo -e ${NC}
@@ -31,6 +30,19 @@ if [[ ! -z "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
     echo >> $CONFIG_PATH
     echo "CUSTOM_DOMAIN_CONFIRMED=$PROJECT" >> $CONFIG_PATH
   fi
+fi
+
+if [[ ! -z "$MAILGUN_APIKEY" && -z "$MAILGUN_SMTP_DOMAIN_KEY_TXT" ]]; then
+  echo -e ${RED}
+  echo "You have provided a mailgun API key but no domain key"
+  echo
+  echo "  Config file: $CONFIG_PATH"
+  echo "  Likely Mailgun url: https://mailgun.com/app/domains/$CUSTOM_DOMAIN"
+  echo
+  echo "  Search for smtp._domainkey and set its **value** as the value"
+  echo "  of MAILGUN_SMTP_DOMAIN_KEY_TXT"
+  echo -e ${NC}
+  exit 1
 fi
 
 # TODO: Might not always be appspot - how do we configure this?
@@ -242,7 +254,7 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   TOP_LEVEL_DOMAIN=$(echo $CUSTOM_DOMAIN | rev | cut -d'.' -f-2 | rev)
 
   status "DNS for $CUSTOM_DOMAIN..."
-  if [ -z "$(gcloud_dns_zones list | grep "\b$DNS_NAME\b")" ]; then
+  if [ -z "$(gcloud_dns_zones list  2> /dev/null | grep "\b$DNS_NAME\b")" ]; then
     status_no
 
     status "- Creating DNS zone $DNS_NAME..."
@@ -264,8 +276,30 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     status_no
 
     status "- Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
-    gcloud_dns_records transaction start
-    gcloud_dns_records transaction add --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=TXT "v=spf1 include:mailgun.org ~all"
+    gcloud_dns_records transaction start \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction add \
+      --name="$TOP_LEVEL_DOMAIN." \
+      --ttl=21600 \
+      --type=TXT "v=spf1 include:mailgun.org ~all" \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction execute \
+      2>&1 | logger || exit 1
+  fi
+  status_ok
+
+  status "  Mailgun SMTP TXT..."
+  if [ -z "$(gcloud_dns_records list | grep "\bTXT\b" | grep "k=rsa;")" ]; then
+    status_no
+
+    status "- Adding DNS SMTP TXT entry 'smtp._domainkey'..."
+    gcloud_dns_records transaction start \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction add \
+      --name="smtp._domainkey.$TOP_LEVEL_DOMAIN." \
+      --ttl=21600 \
+      --type=TXT "$MAILGUN_SMTP_DOMAIN_KEY_TXT" \
+      2>&1 | logger || exit 1
     gcloud_dns_records transaction execute \
       2>&1 | logger || exit 1
   fi
@@ -276,9 +310,15 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     status_no
 
     status "- Adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
-    gcloud_dns_records transaction start
-    gcloud_dns_records transaction add --name="email.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=CNAME "mailgun.org."
-    gcloud_dns_records transaction execute
+    gcloud_dns_records transaction start \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction add \
+      --name="email.$TOP_LEVEL_DOMAIN." \
+      --ttl=21600 \
+      --type=CNAME "mailgun.org." \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction execute \
+      2>&1 | logger || exit 1
   fi
   status_ok
 
@@ -287,9 +327,15 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     status_no
 
     status "- Adding DNS MX entries for mailgun..."
-    gcloud_dns_records transaction start
-    gcloud_dns_records transaction add --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=MX "10 mxa.mailgun.org." "10 mxb.mailgun.org."
-    gcloud_dns_records transaction execute
+    gcloud_dns_records transaction start \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction add \
+      --name="$TOP_LEVEL_DOMAIN." \
+      --ttl=21600 \
+      --type=MX "10 mxa.mailgun.org." "10 mxb.mailgun.org." \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction execute \
+      2>&1 | logger || exit 1
   fi
   status_ok
 
@@ -298,9 +344,15 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     status_no
 
     status "- Adding DNS subdomain entry $NOTIFICATIONS_SUBDOMAIN..."
-    gcloud_dns_records transaction start
-    gcloud_dns_records transaction add --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
-    gcloud_dns_records transaction execute
+    gcloud_dns_records transaction start \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction add \
+      --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." \
+      --ttl=60 \
+      --type=A $VM_EXTERNAL_IP \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction execute \
+      2>&1 | logger || exit 1
   fi
   status_ok
 
@@ -309,9 +361,15 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     status_no
 
     status "- Adding DNS subdomain entry $GIT_SUBDOMAIN..."
-    gcloud_dns_records transaction start
-    gcloud_dns_records transaction add --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
-    gcloud_dns_records transaction execute
+    gcloud_dns_records transaction start \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction add \
+      --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." \
+      --ttl=60 \
+      --type=A $VM_EXTERNAL_IP \
+      2>&1 | logger || exit 1
+    gcloud_dns_records transaction execute \
+      2>&1 | logger || exit 1
   fi
   status_ok
 fi

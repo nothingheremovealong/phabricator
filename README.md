@@ -76,7 +76,7 @@ Once you've configured your project's config file you can run the install script
 
     ./install -p <project name>
 
-Estimated time to complete: 20 minutes (totally automated after invocation).
+Estimated time to complete: 18-20 minutes (totally automated after invocation).
 
 ### Upgrading phabricator
 
@@ -92,19 +92,53 @@ To ssh into your instance you must run:
 
     ./ssh -p <project name>
 
-## Sending mail
+## Custom domains
 
-Sending mail requires that your project has a custom domain.
+Custom domains enable the following features:
 
-### Register a custom domain
+- Email with Mailgun
+- Notifications
+- Git hosting
 
-### Register for Mailgun
+### Before you start
 
-[Mailgun](http://www.mailgun.com/) is [Phabricator's recommended outgoing email service](https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email/).
-Register for an account
+- Choose your favorite registrar and purchase a domain name. Ensure that you are able to change the
+  name servers for your domain.
+- Register for Mailgun. [Mailgun](http://www.mailgun.com/) is
+  [Phabricator's recommended outgoing email service](https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email/).
+  Register for an account and provide it with your custom domain.
+
+NOTE: Do not use a subdomain when creating your Mailgun domain. E.g. if your website's name is
+`phabricatorplayground.com`, use `phabricatorplayground.com` as the domain name.
+
+### Update your configuration
+
+Modify your `config/<project>` file to set the following values:
+
+    MAILGUN_APIKEY="your api key"
+    CUSTOM_DOMAIN="yourdomain.com"
+
+Re-run the installation script:
+
+    ./install -p <project name>
+
+Follow the displayed steps to register your custom domain with your Cloud Engine project.
+
+#### Manual step: Change nameservers
+
+Once the install script completes you must change the name servers for your domain.
+
+Start by visiting the DNS Zones page of your project:
+
+https://console.cloud.google.com/networking/dns/zones
+
+Open your phabricator zone and look at the `NS` values listed. Enter these values in your
+registrar's namespace editor for your domain. These changes may take up to 24 hours to propagate.
+
+You will know once your DNS changes have propagated when you visit your Mailgun project page and
+your domain has been verified.
 
 ## TODO
 
 - ☐ Support https on the phabricator vm and nginx instance.
-- ☐ Allow "login" app.yaml settings to be configured. It currently defaults to "admin" for the entire site, which is good for development but not necessary once launched.
 - ☐ Support plugins. E.g. a server that listens to github webhooks and phabricators http.post events and synchronizes pull request accordingly.

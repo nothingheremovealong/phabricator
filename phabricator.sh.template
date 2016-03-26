@@ -2,8 +2,12 @@
 
 ZONE= # Must provide a zone. Run `gcloud compute zones list` for a list.
 
-MAILGUN_APIKEY= # Recommended. Provide if you are using Mailgun to send mail.
-CUSTOM_DOMAIN= # Recommended. Provide if you intend to serve phabricator behind a custom domain.
+# Recommended. Provide if you are using Mailgun to send mail.
+MAILGUN_APIKEY=
+MAILGUN_SMTP_DOMAIN_KEY_TXT=
+
+# Recommended. Provide if you intend to serve phabricator behind a custom domain.
+CUSTOM_DOMAIN= 
 
 # Only applies when CUSTOM_DOMAIN is provided.
 NOTIFICATIONS_SUBDOMAIN=n
