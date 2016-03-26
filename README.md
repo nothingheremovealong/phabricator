@@ -36,6 +36,8 @@ And enable the following:
 
 You don't need to create credentials for either of the above services.
 
+Estimated time to complete: 2-5 minutes (all manual steps).
+
 ### Install gcloud tools
 
 Follow the directions located here: https://cloud.google.com/sdk/?hl=en
@@ -59,6 +61,8 @@ This configuration will ask you for the following information:
 - The default compute zone (pick what's closest to you)
 - Whether or not you want to use Google's source hosting. You don't need this for this script.
 
+Estimated time to complete: 5 minutes (some manual steps).
+
 ### Create your project's configuration file
 
 The first time you run the script it will create a default configuration file for your project in
@@ -71,6 +75,16 @@ The first time you run the script it will create a default configuration file fo
 Once you've configured your project's config file you can run the install script:
 
     ./install -p <project name>
+
+Estimated time to complete: 20 minutes (totally automated after invocation).
+
+### Upgrading phabricator
+
+To upgrade phabricator you may run:
+
+    ./upgrade -p <project name>
+
+Estimated time to complete: 3 minutes (totally automated after invocation).
 
 ## Sending mail
 
