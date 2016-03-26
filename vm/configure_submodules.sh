@@ -28,7 +28,6 @@ function clone {
   popd >> /dev/null
 }
 
-clone arcanist
-clone libphutil
-clone phabricator
-
+sudo clone arcanist
+sudo clone libphutil
+sudo clone phabricator
