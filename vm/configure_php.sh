@@ -5,7 +5,7 @@ set -e
 function disable_php {
   if [ $(grep -c "^$1" /etc/php5/apache2/php.ini) = 0 ]; then
     echo "Disabling $1..."
-    sudo echo "$1 = 0" >> /etc/php5/apache2/php.ini
+    echo "$1 = 0" | sudo tee /etc/php5/apache2/php.ini
   fi
 }
 
