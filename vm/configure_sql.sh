@@ -55,18 +55,18 @@ export SQL_PASS="$(uuidgen)"
 pushd /opt/phabricator >> /dev/null
 
 # Configure Phabricator's connection to the SQL server.
-./bin/config set mysql.host ${SQL_HOST}
-./bin/config set mysql.port 3306
-./bin/config set mysql.user ${SQL_USER}
-./bin/config set mysql.pass ${SQL_PASS}
+sudo ./bin/config set mysql.host ${SQL_HOST}
+sudo ./bin/config set mysql.port 3306
+sudo ./bin/config set mysql.user ${SQL_USER}
+sudo ./bin/config set mysql.pass ${SQL_PASS}
 
 # Configure Phabricator's reference to itself.
-./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
-./bin/config set security.alternate-file-domain ${PHABRICATOR_ALTERNATE_BASE_URI}
-./bin/config set phd.taskmasters 4
+sudo ./bin/config set phabricator.base-uri ${PHABRICATOR_BASE_URI}
+sudo ./bin/config set security.alternate-file-domain ${PHABRICATOR_ALTERNATE_BASE_URI}
+sudo ./bin/config set phd.taskmasters 4
 
 popd >> /dev/null
 
 echo "Upgrading $SQL_INSTANCE db..."
 
-phabricator/bin/storage upgrade --force
+sudo phabricator/bin/storage upgrade --force
