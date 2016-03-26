@@ -8,15 +8,15 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 sudo apt-get install -y unzip
 
 # Remove any existing zip first
-rm -f google-cloud-sdk.zip
+sudo rm -f google-cloud-sdk.zip
 
 # Download google-cloud_sdk
-wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip
+sudo wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip
 
 # Unzip sdk into google directory
 sudo unzip -uo google-cloud-sdk.zip -d /google/
 
-rm -f google-cloud-sdk.zip
+sudo rm -f google-cloud-sdk.zip
 
 if [ $(grep -c "\/google\/google-cloud-sdk\/bin" /etc/profile) -eq 0  ]; then
   echo "Adding google cloud SDK to path...";
