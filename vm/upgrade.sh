@@ -52,7 +52,7 @@ pushd phabricator >> /dev/null
 
 # Upgrade the database schema. You may want to add the "--force" flag to allow
 # this script to run noninteractively.
-sudo ./bin/storage upgrade
+sudo ./bin/storage upgrade --force
 
 # Restart the webserver. As above, this depends on your system and webserver.
 # NOTE: If you're running php-fpm, restart it here too.
