@@ -12,7 +12,7 @@ popd >> /dev/null
 function clone {
   if [ ! -d $1 ]; then
     echo "Cloning $1..."
-    git clone $DIR/third_party/$1 $1
+    git clone $DIR/third_party/$1 $1 || exit 1
   else
     pushd $1 >> /dev/null
     git fetch $DIR/third_party/$1
