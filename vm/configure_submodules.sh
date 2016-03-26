@@ -12,10 +12,10 @@ popd >> /dev/null
 function clone {
   if [ ! -d $1 ]; then
     echo "Cloning $1..."
-    git clone $DIR/third_party/$1 $1 || exit 1
+    sudo git clone $DIR/third_party/$1 $1 || exit 1
   else
     pushd $1 >> /dev/null
-    git fetch $DIR/third_party/$1
+    sudo git fetch $DIR/third_party/$1
     popd >> /dev/null
   fi
 
@@ -24,10 +24,10 @@ function clone {
   popd >> /dev/null
   pushd $1 >> /dev/null
   echo "Checking out $1/$sha..."
-  git checkout -q $sha
+  sudo git checkout -q $sha
   popd >> /dev/null
 }
 
-sudo clone arcanist
-sudo clone libphutil
-sudo clone phabricator
+clone arcanist
+clone libphutil
+clone phabricator
