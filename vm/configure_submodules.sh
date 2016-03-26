@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Terminate execution on command failure
+set -e
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 pushd $DIR >> /dev/null
