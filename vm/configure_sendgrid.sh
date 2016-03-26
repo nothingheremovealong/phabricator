@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 sudo apt-get install postfix libsasl2-modules -y
 
 if [ $(grep -c "^default_transport" /etc/postfix/main.cf) -ne 0 ]; then

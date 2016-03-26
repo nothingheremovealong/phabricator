@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ "$#" -lt 1 ]; then
   echo "Usage: ${BASH_SOURCE[0]} <notifications_url>"
   exit 1

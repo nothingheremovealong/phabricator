@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ "$#" -lt 2 ]; then
   echo "Usage: ${BASH_SOURCE[0]} <base_uri>"
   exit 1

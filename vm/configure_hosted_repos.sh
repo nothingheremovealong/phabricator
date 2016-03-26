@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ ! -d /mnt/git-repos ]; then
   echo "Creating hosted repo folder..."
   sudo mkdir -p /mnt/git-repos && sudo chown phabricator-daemon:phabricator-daemon /mnt/git-repos

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if ! cat /etc/passwd | grep "^phabricator-daemon" >> /dev/null; then
   sudo useradd -r -s /bin/bash phabricator-daemon
 fi

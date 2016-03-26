@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 function disable_php {
   if [ $(grep -c "^$1" /etc/php5/apache2/php.ini) = 0 ]; then
     echo "Disabling $1..."
