@@ -29,4 +29,4 @@ sudo /google/google-cloud-sdk/install.sh \
   --command-completion=true \
   --path-update=true
 
-/google/google-cloud-sdk/bin/gcloud config set --installation component_manager/disable_update_check True
+sudo /google/google-cloud-sdk/bin/gcloud config set --installation component_manager/disable_update_check True
