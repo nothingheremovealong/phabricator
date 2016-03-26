@@ -11,7 +11,7 @@ if [[ ! -z "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
   echo "In order to configure the domain you will need to perform the following steps:"
   echo
   echo "  1. Visit https://console.developers.google.com/appengine/settings/domains?project=$PROJECT"
-  echo 
+  echo
   echo "  If $CUSTOM_DOMAIN is already listed there then your work is done here, otherwise continue with step 2:"
   echo
   echo "  2. Otherwise, visit https://console.developers.google.com/appengine/settings/domains/add?project=$PROJECT"
@@ -20,7 +20,7 @@ if [[ ! -z "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
   echo
   echo "  Learn more about custom domains at https://cloud.google.com/appengine/docs/using-custom-domains-and-ssl?hl=en"
   echo -e ${NC}
-  
+
   echo "Please press enter to confirm that you've registered $CUSTOM_DOMAIN, or Ctrl-C to quit."
   read
 
@@ -87,7 +87,7 @@ status_ok
 # status "  Allow internal traffic..."
 # if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
 #   status_no
-# 
+#
 #   status "- Creating firewall rule 'allow-internal'..."
 #   gcloud_firewall_rules create \
 #     allow-internal \
@@ -257,18 +257,18 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     gcloud_dns_records transaction start
     gcloud_dns_records transaction add --name="email.$TOP_LEVEL_DOMAIN." --ttl=21600 --type=CNAME "mailgun.org."
     gcloud_dns_records transaction execute
-  fi  
+  fi
   status_ok
 
   status "  Mailgun MX..."
   if [ -z "$(gcloud_dns_records list | grep "\bMX\b" | grep "mxa.mailgun.org")" ]; then
     status_no
-    
+
     status "- Adding DNS MX entries for mailgun..."
     gcloud_dns_records transaction start
     gcloud_dns_records transaction add --name="$TOP_LEVEL_DOMAIN." --ttl=21600 --type=MX "10 mxa.mailgun.org." "10 mxb.mailgun.org."
     gcloud_dns_records transaction execute
-  fi  
+  fi
   status_ok
 
   status "  Notifications subdomain..."
@@ -279,7 +279,7 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     gcloud_dns_records transaction start
     gcloud_dns_records transaction add --name="$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
     gcloud_dns_records transaction execute
-  fi  
+  fi
   status_ok
 
   status "  Git subdomain..."
@@ -290,7 +290,7 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     gcloud_dns_records transaction start
     gcloud_dns_records transaction add --name="$GIT_SUBDOMAIN.$TOP_LEVEL_DOMAIN." --ttl=60 --type=A $VM_EXTERNAL_IP
     gcloud_dns_records transaction execute
-  fi  
+  fi
   status_ok
 fi
 
@@ -345,13 +345,16 @@ status_ok
 
 popd >> /dev/null
 
-exit 1
-
 remove_ssl() {
+  status "ssh firewall"
   if [ "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
+    status_no
+
     status "Removing temporary $NETWORK_NAME ssh firewall rule..."
-    gcloud_firewall_rules delete temp-allow-ssh || exit 1
+    gcloud_firewall_rules delete temp-allow-ssh \
+      2>&1 | logger || exit 1
   fi
+  status_ok
 }
 trap remove_ssl EXIT
 
@@ -368,7 +371,8 @@ if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-
   gcloud_firewall_rules create temp-allow-ssh \
     --allow "tcp:$port" \
     --network $NETWORK_NAME \
-    --source-ranges "0.0.0.0/0" || exit 1
+    --source-ranges "0.0.0.0/0" \
+    2>&1 | logger || exit 1
 fi
 status_ok
 
@@ -381,7 +385,7 @@ remote_exec() {
 
 remote_exec "sudo apt-get -qq update && sudo apt-get install -y git" || exit 1
 remote_exec "if [ ! -d phabricator ]; then git clone https://github.com/nothingheremovealong/phabricator.git; else cd phabricator; git fetch; git rebase origin/master; fi" || exit 1
-remote_exec "cd /opt;sudo bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
+remote_exec "cd /opt;bash ~/phabricator/vm/install.sh $SQL_NAME http://$PHABRICATOR_URL http://$PHABRICATOR_VERSIONED_URL" || exit 1
 
 # Configure the startup script.
 remote_exec "cp ~/phabricator/vm/startup.sh .; \
@@ -400,7 +404,7 @@ if [ -n "$GIT_SUBDOMAIN" ]; then
 
   # Tag the machine so that we know how to ssh into it in the future
   if [ -z "$(gcloud_instances describe $VM_NAME --zone=$ZONE | grep "ssh-222")" ]; then
-    gcloud_instances add-tags --zone=$ZONE $VM_NAME --tags ssh-222 
+    gcloud_instances add-tags --zone=$ZONE $VM_NAME --tags ssh-222
   fi
 
   port="222"
@@ -408,7 +412,7 @@ fi
 
 if [ -n "$NOTIFICATIONS_SUBDOMAIN" ]; then
   remote_exec "sed -i.bak -e s/#NOTIFICATIONS_SUBDOMAIN=/NOTIFICATIONS_SUBDOMAIN=$NOTIFICATIONS_SUBDOMAIN/ startup.sh" || exit 1
-  
+
   remote_exec "cd /opt;sudo bash ~/phabricator/vm/configure_notifications.sh http://$NOTIFICATIONS_SUBDOMAIN.$TOP_LEVEL_DOMAIN" || exit 1
   remote_exec "cd /opt/phabricator;sudo su aphlict -c './bin/aphlict restart'" || exit 1
 fi
