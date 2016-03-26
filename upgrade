@@ -6,11 +6,11 @@
 set -e
 
 echo "Syncing submodules..."
-git submodule foreach "git fetch;git checkout origin/stable" >> /dev/null 2>&1
-git add vm/third_party >> /dev/null 2>&1
-git commit -m "Upgrading phabricator to latest stable." >> /dev/null 2>&1 || { echo "Nothing has changed."; exit 0; }
 
-git push origin master >> /dev/null 2>&1
+# git submodule foreach "git fetch;git checkout origin/stable" >> /dev/null 2>&1
+# git add vm/third_party >> /dev/null 2>&1
+# git commit -m "Upgrading phabricator to latest stable." >> /dev/null 2>&1 || { echo "Nothing has changed."; exit 0; }
+# git push origin master >> /dev/null 2>&1
 
 open_ssh
 
