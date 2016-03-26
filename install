@@ -135,7 +135,7 @@ if [ -z "$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b")" ]; then
     2>&1 | logger || exit 1
 fi
 
-STATIC_EXTERNAL_IP=$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b") | cut -d' ' -f3)
+STATIC_EXTERNAL_IP=$(gcloud_addresses list | grep "\b$ADDRESS_NAME\b" | cut -d' ' -f3)
 
 status "Compute instances..."
 if [ -z "$(gcloud_instances list | grep "\b$VM_NAME\b")" ]; then
