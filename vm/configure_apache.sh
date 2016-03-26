@@ -40,11 +40,11 @@ fi
 
 if [ ! -d /usr/local/apache/logs ]; then
   echo "Configuring apache logs..."
-  sudo mkdir -p /usr/local/apache/logs && chown www-data:www-data /usr/local/apache/logs
+  sudo mkdir -p /usr/local/apache/logs && sudo chown www-data:www-data /usr/local/apache/logs
 fi
 
 if [ ! -d /var/log/phabricator ]; then
   echo "Configuring phabricator logs..."
-  sudo mkdir -p /var/log/phabricator && chown www-data:www-data /var/log/phabricator
+  sudo mkdir -p /var/log/phabricator && sudo chown www-data:www-data /var/log/phabricator
 fi
 
