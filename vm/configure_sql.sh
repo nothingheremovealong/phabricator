@@ -20,6 +20,15 @@ if ! /google/google-cloud-sdk/bin/gcloud --quiet sql instances list >> /dev/null
   exit 1
 fi
 
+# Install SQL proxy
+sudo wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
+sudo mv cloud_sql_proxy.linux.amd64 cloud_sql_proxy
+sudo chmod +x cloud_sql_proxy
+
+sudo mkdir -p /cloudsql
+sudo chmod 777 /cloudsql
+sudo ./cloud_sql_proxy -dir=/cloudsql -fuse &
+
 SQL_INSTANCE=$1
 PHABRICATOR_BASE_URI=$2
 if [ "$#" -eq 3 ]; then
@@ -40,9 +49,12 @@ if [ -z "${SQL_DETAILS}" ]; then
 fi
 popd >> /dev/null
 
-export SQL_HOST=$(echo ${SQL_DETAILS} | jq -r '.ipAddresses[0].ipAddress')
+export SQL_PROJECT=$(echo ${SQL_DETAILS} | jq -r '.project')
+export SQL_REGION=$(echo ${SQL_DETAILS} | jq -r '.region')
+
+export SQL_HOST="/cloudsql/$SQL_PROJECT:$SQL_REGION:$SQL_INSTANCE"
 if [ -z "${SQL_HOST}" ]; then
-  echo "Failed to lookup the IP address of the '${SQL_INSTANCE}' Cloud SQL instance"
+  echo "Failed to create the host of the '${SQL_INSTANCE}' Cloud SQL instance"
   exit 1
 fi
 
