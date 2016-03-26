@@ -1,15 +1,16 @@
 #!/bin/bash
 
+ZONE= # Must provide a zone. Run `gcloud compute zones list` for a list.
+
+MAILGUN_APIKEY= # Recommended. Provide if you are using Mailgun to send mail.
+CUSTOM_DOMAIN= # Recommended. Provide if you intend to serve phabricator behind a custom domain.
+
+# Only applies when CUSTOM_DOMAIN is provided.
+NOTIFICATIONS_SUBDOMAIN=n
+GIT_SUBDOMAIN=git
+
+# Only modify these if installing phabricator into an existing cluster.
 NETWORK_NAME=phabricator
 DNS_NAME=phabricator
 SQL_NAME=phabricator
 VM_NAME=phabricator
-ZONE=us-central1-a
-
-#MAILGUN_APIKEY=
-
-# Uncomment if you have a custom domain.
-#CUSTOM_DOMAIN=
-
-NOTIFICATIONS_SUBDOMAIN=n
-GIT_SUBDOMAIN=git
