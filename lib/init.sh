@@ -161,11 +161,11 @@ gcloud_sql_instances() {
 # SSL utils
 
 close_ssh() {
-  status "ssh firewall"
+  status "ssh port is closed? "
   if [ "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
     status_no
 
-    status "Removing temporary $NETWORK_NAME ssh firewall rule..."
+    status "- Removing temporary $NETWORK_NAME ssh firewall rule..."
     gcloud_firewall_rules delete temp-allow-ssh \
       2>&1 | logger || exit 1
   fi
@@ -181,7 +181,7 @@ open_ssh() {
   trap close_ssh EXIT
 
   if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\btemp-allow-ssh\b")" ]; then
-    echo "Creating temporary $NETWORK_NAME ssh firewall rule..."
+    status "- Creating temporary $NETWORK_NAME ssh firewall rule..."
     gcloud_firewall_rules create temp-allow-ssh \
       --allow "tcp:$PORT" \
       --network $NETWORK_NAME \
@@ -189,6 +189,7 @@ open_ssh() {
       --source-ranges "0.0.0.0/0" \
       2>&1 | logger || exit 1
   fi
+  status_ok
 }
 
 remote_exec() {

@@ -62,7 +62,7 @@ sudo apachectl start
 sudo su phabricator-daemon -c "./bin/phd start"
 
 # If running the notification server, start it.
-if [ $(sudo ./bin/config get notification.enabled) = "true" ]; then
+if hash nodejs 2>/dev/null; then
   sudo su aphlict -c "./bin/aphlict start"
 fi
 
