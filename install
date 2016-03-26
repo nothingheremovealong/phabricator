@@ -80,23 +80,26 @@ status "Network..."
 if [ -z "$(gcloud_networks list | grep "\b$NETWORK_NAME\b")" ]; then
   status_no
   status "- Creating $NETWORK_NAME network..."
-  gcloud_networks create $NETWORK_NAME --mode auto | logger || exit 1
+  gcloud_networks create \
+    $NETWORK_NAME \
+    --mode auto \
+    2>&1 | logger || exit 1
 fi
 status_ok
 
-# status "  Allow internal traffic..."
-# if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal\b")" ]; then
-#   status_no
-#
-#   status "- Creating firewall rule 'allow-internal'..."
-#   gcloud_firewall_rules create \
-#     allow-internal \
-#     --allow "tcp:0-65535" \
-#     --network "$NETWORK_NAME" \
-#     --source-ranges "10.0.0.0/24" \
-#     2>&1 | logger || exit 1
-# fi
-# status_ok
+status "  Allow internal http..."
+if [ -z "$(gcloud_firewall_rules list | grep "\b$NETWORK_NAME\b" | grep "\ballow-internal-http\b")" ]; then
+  status_no
+
+  status "- Creating firewall rule 'allow-internal-http'..."
+  gcloud_firewall_rules create \
+    allow-internal-http \
+    --allow "tcp:80" \
+    --network "$NETWORK_NAME" \
+    --source-ranges "10.0.0.0/24" \
+    2>&1 | logger || exit 1
+fi
+status_ok
 
 # Sub-domain configuration
 

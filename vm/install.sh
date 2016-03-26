@@ -90,40 +90,46 @@ else
   echo "pcntl already installed";
 fi
 
-echo "Configuring users..."
+line() {
+  echo
+  echo "============================================"
+  echo "$@"
+}
+
+line "Configuring users..."
 bash $DIR/configure_users.sh || exit 1
 
-echo "Configuring submodules..."
+line "Configuring submodules..."
 bash $DIR/configure_submodules.sh || exit 1
 
-echo "Configuring apache..."
+line "Configuring apache..."
 bash $DIR/configure_apache.sh || exit 1
 
-echo "Configuring php..."
+line "Configuring php..."
 bash $DIR/configure_php.sh || exit 1
 
-echo "Configuring pygments..."
+line "Configuring pygments..."
 bash $DIR/configure_pygments.sh || exit 1
 
-echo "Configuring phabricator..."
+line "Configuring phabricator..."
 bash $DIR/configure_phabricator.sh || exit 1
 
-echo "Configuring hosted repos..."
+line "Configuring hosted repos..."
 bash $DIR/configure_hosted_repos.sh || exit 1
 
-echo "Configuring scripts..."
+line "Configuring scripts..."
 bash $DIR/configure_scripts.sh || exit 1
 
-echo "Configuring gcloud..."
+line "Configuring gcloud..."
 bash $DIR/configure_gcloud.sh || exit 1
 
-echo "Configuring sql..."
+line "Configuring sql..."
 bash $DIR/configure_sql.sh $SQL_INSTANCE $PHABRICATOR_BASE_URI $PHABRICATOR_ALTERNATE_BASE_URI || exit 1
 
 pushd phabricator >> /dev/null
-echo "Starting daemons"
+line "Starting daemons"
 sudo su phabricator-daemon -c "./bin/phd restart"
 popd >> /dev/null
 
-echo "Restarting apache..."
+line "Restarting apache..."
 sudo apachectl restart
