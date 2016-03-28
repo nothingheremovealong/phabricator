@@ -92,6 +92,10 @@ To ssh into your instance you must run:
 
     ./ssh -p <project name>
 
+### Shutting down the server
+
+TODO: Discuss shutting down compute engine and serving a static "update in progress page."
+
 ## Custom domains
 
 Custom domains enable the following features:
@@ -117,6 +121,8 @@ Modify your `config/<project>` file to set the following values:
 
     MAILGUN_APIKEY="your api key"
     CUSTOM_DOMAIN="yourdomain.com"
+
+TODO: Provide A and AAA records here as well.
 
 Re-run the installation script:
 
