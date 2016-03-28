@@ -121,8 +121,10 @@ Modify your `config/<project>` file to set the following values:
 
     MAILGUN_APIKEY="your api key"
     CUSTOM_DOMAIN="yourdomain.com"
-    CUSTOM_DOMAIN_A_RECORD="ip.1; ip.2; ip.3; ip.4"
-    CUSTOM_DOMAIN_AAA_RECORD="ip::1; ip::2; ip::3; ip::4"
+    CUSTOM_DOMAIN_A_RECORD="ip.1 ip.2 ip.3 ip.4"
+    CUSTOM_DOMAIN_AAAA_RECORD="ip::1 ip::2 ip::3 ip::4"
+    
+    # Note that the above records are space-separated. There should be four for each.
 
 Re-run the installation script:
 
@@ -155,19 +157,9 @@ to your domain in your `/etc/hosts` file.
 
     some.ip<tab>yourdomain.com
 
-## SSL certificate
+#### Troubleshooting DNS
 
-Follow the steps at:
+> server DNS address could not be found.
 
-https://cloud.google.com/appengine/docs/python/console/using-custom-domains-and-ssl#obtaining_a_certificate
-
-to acquire an SSL certificate and the steps at:
-
-https://cloud.google.com/appengine/docs/python/console/using-custom-domains-and-ssl#adding_ssl_to_your_custom_domain
-
-to register the certificate with your custom domain.
-
-## TODO
-
-- ☐ Support https on the phabricator vm and nginx instance.
-- ☐ Support plugins. E.g. a server that listens to github webhooks and phabricators http.post events and synchronizes pull request accordingly.
+Ensure that your NS entries for your custom domain on Cloud Engine match the ones set on your
+registrar.

@@ -9,7 +9,7 @@ MAILGUN_SMTP_DOMAIN_KEY_TXT=
 # Recommended. Provide if you intend to serve phabricator behind a custom domain.
 CUSTOM_DOMAIN=
 CUSTOM_DOMAIN_A_RECORD=
-CUSTOM_DOMAIN_AAA_RECORD=
+CUSTOM_DOMAIN_AAAA_RECORD=
 
 # Only applies when CUSTOM_DOMAIN is provided.
 NOTIFICATIONS_SUBDOMAIN=n

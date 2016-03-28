@@ -53,12 +53,12 @@ if [[ ! -z "$CUSTOM_DOMAIN" && -z "$CUSTOM_DOMAIN_A_RECORD" ]]; then
   exit 1
 fi
 
-if [[ ! -z "$CUSTOM_DOMAIN" && -z "$CUSTOM_DOMAIN_AAA_RECORD" ]]; then
+if [[ ! -z "$CUSTOM_DOMAIN" && -z "$CUSTOM_DOMAIN_AAAA_RECORD" ]]; then
   echo -e ${RED}
   echo "You have provided a custom domain of $CUSTOM_DOMAIN"
-  echo "but you have not provided the necessary AAA records."
+  echo "but you have not provided the necessary AAAA records."
   echo
-  echo "Retrieve the AAA records by visiting:"
+  echo "Retrieve the AAAA records by visiting:"
   echo
   echo "  https://console.developers.google.com/appengine/settings/domains?project=$PROJECT"
   echo
@@ -309,13 +309,17 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   status_ok
 
   # Abort any existing transaction
-  if gcloud_dns_records transaction describe >> /dev/null 2>&1; then
-    gcloud_dns_records transaction abort 2>&1 | logger
-  fi
+  abort_existing_dns() {
+    if gcloud_dns_records transaction describe >> /dev/null 2>&1; then
+      gcloud_dns_records transaction abort 2>&1 | logger
+    fi
+  }
 
   status "  Mailgun TXT..."
   if [ -z "$(gcloud_dns_records list | grep "\bTXT\b" | grep "mailgun.org")" ]; then
     status_no
+
+    abort_existing_dns
 
     status "- Adding DNS TXT entry 'v=spf1 include:mailgun.org ~all'..."
     gcloud_dns_records transaction start \
@@ -334,6 +338,8 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   if [ -z "$(gcloud_dns_records list | grep "\bTXT\b" | grep "k=rsa;")" ]; then
     status_no
 
+    abort_existing_dns
+
     status "- Adding DNS SMTP TXT entry 'smtp._domainkey'..."
     gcloud_dns_records transaction start \
       2>&1 | logger || exit 1
@@ -350,6 +356,8 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   status "  Mailgun CNAME..."
   if [ -z "$(gcloud_dns_records list | grep "\bCNAME\b" | grep "mailgun.org")" ]; then
     status_no
+
+    abort_existing_dns
 
     status "- Adding DNS CNAME entry email.$PHABRICATOR_URL. 'mailgun.org'..."
     gcloud_dns_records transaction start \
@@ -368,6 +376,8 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   if [ -z "$(gcloud_dns_records list | grep "\bMX\b" | grep "mxa.mailgun.org")" ]; then
     status_no
 
+    abort_existing_dns
+
     status "- Adding DNS MX entries for mailgun..."
     gcloud_dns_records transaction start \
       2>&1 | logger || exit 1
@@ -382,19 +392,21 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   status_ok
 
   ensure_record() {
-    type=$1
-    value=$2
-    status "  $type record: $value..."
-    if [[ -z "$(gcloud_dns_records list | grep "\b$type\b" | grep "\b$value")" ]]; then
+    recordtype=$1
+    status "  $recordtype record..."
+    if [[ -z "$(gcloud_dns_records list | grep "\b$recordtype\b" | grep "^$TOP_LEVEL_DOMAIN.")" ]]; then
       status_no
 
-      status "- Adding $type entry $value..."
+      abort_existing_dns
+
+      status "- Adding $recordtype entry..."
       gcloud_dns_records transaction start \
         2>&1 | logger || exit 1
       gcloud_dns_records transaction add \
-        --name="$value" \
+        --name="$TOP_LEVEL_DOMAIN." \
         --ttl=21600 \
-        --type="$type" $VM_EXTERNAL_IP \
+        --type="$recordtype" \
+        "${@:2}" \
         2>&1 | logger || exit 1
       gcloud_dns_records transaction execute \
         2>&1 | logger || exit 1
@@ -403,22 +415,20 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
   }
 
   if [ ! -z "$CUSTOM_DOMAIN_A_RECORD" ]; then
-    for record in $(echo $CUSTOM_DOMAIN_A_RECORD | sed "s/;/ /g"); do
-      ensure_record A $record
-    done
+    ensure_record A $CUSTOM_DOMAIN_A_RECORD
   fi
 
-  if [ ! -z "$CUSTOM_DOMAIN_AAA_RECORD" ]; then
-    for record in $(echo $CUSTOM_DOMAIN_AAA_RECORD | sed "s/;/ /g"); do
-      ensure_record AAA $record
-    done
+  if [ ! -z "$CUSTOM_DOMAIN_AAAA_RECORD" ]; then
+    ensure_record AAAA $CUSTOM_DOMAIN_AAAA_RECORD
   fi
 
   ensure_subdomain() {
-    name=$1
+    name="$1"
     status "  Subdomain: $name..."
-    if [[ ! -z "$NOTIFICATIONS_SUBDOMAIN" && -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$name.$TOP_LEVEL_DOMAIN.")" ]]; then
+    if [[ -z "$(gcloud_dns_records list | grep "\bA\b" | grep "\b$name.$TOP_LEVEL_DOMAIN.")" ]]; then
       status_no
+
+      abort_existing_dns
 
       status "- Adding DNS subdomain entry $name..."
       gcloud_dns_records transaction start \
@@ -426,7 +436,8 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
       gcloud_dns_records transaction add \
         --name="$name.$TOP_LEVEL_DOMAIN." \
         --ttl=60 \
-        --type=A $VM_EXTERNAL_IP \
+        --type=A \
+        $VM_EXTERNAL_IP \
         2>&1 | logger || exit 1
       gcloud_dns_records transaction execute \
         2>&1 | logger || exit 1
@@ -434,8 +445,14 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
     status_ok
   }
 
-  ensure_subdomain $NOTIFICATIONS_SUBDOMAIN
-  ensure_subdomain $GIT_SUBDOMAIN
+  if [ ! -z "$NOTIFICATIONS_SUBDOMAIN" ]; then
+    ensure_subdomain "$NOTIFICATIONS_SUBDOMAIN"
+  fi
+  if [ ! -z "$GIT_SUBDOMAIN" ]; then
+    ensure_subdomain "$GIT_SUBDOMAIN"
+  fi
+  
+  exit 1
 fi
 
 pushd $DIR/nginx >> /dev/null
