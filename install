@@ -32,6 +32,48 @@ if [[ ! -z "$CUSTOM_DOMAIN" && "$CUSTOM_DOMAIN_CONFIRMED" != "$PROJECT" ]]; then
   fi
 fi
 
+if [[ ! -z "$CUSTOM_DOMAIN" && -z "$CUSTOM_DOMAIN_A_RECORD" ]]; then
+  echo -e ${RED}
+  echo "You have provided a custom domain of $CUSTOM_DOMAIN"
+  echo "but you have not provided the necessary A records."
+  echo
+  echo "Retrieve the A records by visiting:"
+  echo
+  echo "  https://console.developers.google.com/appengine/settings/domains?project=$PROJECT"
+  echo
+  echo "Set the semicolon-separated values in CUSTOM_DOMAIN_A_RECORD within your config path:"
+  echo
+  echo "  $CONFIG_PATH"
+  echo
+  echo "Example:"
+  echo
+  echo "  CUSTOM_DOMAIN_A_RECORD=\"216.239.32.21; 216.239.34.21; 216.239.36.21; 216.239.38.21\""
+  echo
+  echo -e ${NC}
+  exit 1
+fi
+
+if [[ ! -z "$CUSTOM_DOMAIN" && -z "$CUSTOM_DOMAIN_AAA_RECORD" ]]; then
+  echo -e ${RED}
+  echo "You have provided a custom domain of $CUSTOM_DOMAIN"
+  echo "but you have not provided the necessary AAA records."
+  echo
+  echo "Retrieve the AAA records by visiting:"
+  echo
+  echo "  https://console.developers.google.com/appengine/settings/domains?project=$PROJECT"
+  echo
+  echo "Set the semicolon-separated values in CUSTOM_DOMAIN_A_RECORD within your config path:"
+  echo
+  echo "  $CONFIG_PATH"
+  echo
+  echo "Example:"
+  echo
+  echo "  CUSTOM_DOMAIN_A_RECORD=\"2001:4860:4802:32::15; 2001:4860:4802:34::15; 2001:4860:4802:36::15; 2001:4860:4802:38::15\""
+  echo
+  echo -e ${NC}
+  exit 1
+fi
+
 if [[ ! -z "$MAILGUN_APIKEY" && -z "$MAILGUN_SMTP_DOMAIN_KEY_TXT" ]]; then
   echo -e ${RED}
   echo "You have provided a mailgun API key but no domain key"
@@ -338,7 +380,40 @@ if [ ! -z "$CUSTOM_DOMAIN" ]; then
       2>&1 | logger || exit 1
   fi
   status_ok
-  
+
+  ensure_record() {
+    type=$1
+    value=$2
+    status "  $type record: $value..."
+    if [[ -z "$(gcloud_dns_records list | grep "\b$type\b" | grep "\b$value")" ]]; then
+      status_no
+
+      status "- Adding $type entry $value..."
+      gcloud_dns_records transaction start \
+        2>&1 | logger || exit 1
+      gcloud_dns_records transaction add \
+        --name="$value" \
+        --ttl=21600 \
+        --type="$type" $VM_EXTERNAL_IP \
+        2>&1 | logger || exit 1
+      gcloud_dns_records transaction execute \
+        2>&1 | logger || exit 1
+    fi
+    status_ok
+  }
+
+  if [ ! -z "$CUSTOM_DOMAIN_A_RECORD" ]; then
+    for record in $(echo $CUSTOM_DOMAIN_A_RECORD | sed "s/;/ /g"); do
+      ensure_record A $record
+    done
+  fi
+
+  if [ ! -z "$CUSTOM_DOMAIN_AAA_RECORD" ]; then
+    for record in $(echo $CUSTOM_DOMAIN_AAA_RECORD | sed "s/;/ /g"); do
+      ensure_record AAA $record
+    done
+  fi
+
   ensure_subdomain() {
     name=$1
     status "  Subdomain: $name..."
