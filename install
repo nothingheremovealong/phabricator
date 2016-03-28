@@ -457,6 +457,9 @@ fi
 
 pushd $DIR/nginx >> /dev/null
 
+# TODO: Look into Network Load Balancing as an alternative to App Engine for nginx routing.
+# https://cloud.google.com/compute/docs/load-balancing/network/example
+
 status "Generating nginx.conf..."
 if [ -z "$PHABRICATOR_URL" ]; then
   status_no
