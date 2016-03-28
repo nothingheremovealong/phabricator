@@ -121,8 +121,8 @@ Modify your `config/<project>` file to set the following values:
 
     MAILGUN_APIKEY="your api key"
     CUSTOM_DOMAIN="yourdomain.com"
-
-TODO: Provide A and AAA records here as well.
+    CUSTOM_DOMAIN_A_RECORD="ip.1; ip.2; ip.3; ip.4"
+    CUSTOM_DOMAIN_AAA_RECORD="ip::1; ip::2; ip::3; ip::4"
 
 Re-run the installation script:
 
