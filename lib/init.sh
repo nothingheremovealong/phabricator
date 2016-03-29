@@ -10,6 +10,7 @@ GCLOUD_VERSION=$(gcloud version | grep "^Google" | cut -d' ' -f4 | cut -d'.' -f1
 
 if [ "$GCLOUD_VERSION" -lt 102 ]; then
   echo "Minimum gcloud version required: 102. Found $GCLOUD_VERSION instead."
+  exit 1
 fi
 
 OPTIND=1 # Reset in case getopts has been used previously in the shell.
