@@ -12,10 +12,6 @@ set -e
 # NOTE: This script assumes you are running it from a directory which contains
 # arcanist/, libphutil/, and phabricator/.
 
-sudo apt-get -qq update
-sudo apt-get upgrade -y
-sudo apt-get autoremove -y
-
 pushd $DIR >> /dev/null
 
 sudo git fetch
@@ -40,6 +36,12 @@ sudo su aphlict -c "./bin/aphlict stop"
 # NOTE: If you're running php-fpm, you should stop it here too.
 
 sudo apachectl stop
+
+### UPDATE SYSTEM PACKAGES ######################################################
+
+sudo apt-get -qq update
+sudo apt-get upgrade -y
+sudo apt-get autoremove -y
 
 ### UPDATE WORKING COPIES ######################################################
 
